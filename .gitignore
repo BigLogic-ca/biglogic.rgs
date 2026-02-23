@@ -21,6 +21,7 @@ node_modules
 .project
 .profile
 .backup
+.kilocode
 .env*
 
 # testing
