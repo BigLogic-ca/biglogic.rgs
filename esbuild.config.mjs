@@ -38,6 +38,12 @@ const
   },
   files = {
     assets: [
+      // GUIDE
+      { from: '.github/README.md', to: '../docs/README.md' },
+      // { from: 'markdown/**/*', to: '../docs/' },
+      { from: 'markdown/**/*', to: '../docs/' },
+
+      // GENERAL
       { from: '.github/COPYRIGHT.md', to: 'COPYRIGHT.md' },
       { from: '.github/LICENSE.md', to: 'LICENSE.md' },
       { from: '.github/README.md', to: 'README.md' },
