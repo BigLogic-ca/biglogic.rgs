@@ -46,6 +46,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
 
     let dataValue: unknown
     const isEncoded = config?.encoded
+
     if (isEncoded) {
       dataValue = btoa(JSON.stringify(stateObj))
     } else {
@@ -57,7 +58,9 @@ export const flushDisk = async (ctx: PersistenceContext) => {
       d: dataValue, _sys_v: currentVersion, _b64: isEncoded ? true : undefined
     }))
     audit('set', 'FULL_STATE', true)
+
   } catch (e) {
+
     const error = e instanceof Error ? e : new Error(String(e))
     if (onError) onError(error, { operation: 'persist', key: 'FULL_STATE' })
     else if (!silent) console.error(`[gState] Persist failed: `, error)
