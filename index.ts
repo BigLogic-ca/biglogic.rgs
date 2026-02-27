@@ -46,7 +46,9 @@ export const gstate = <S extends Record<string, unknown>>(
   const magic = <K extends keyof S>(key: K) => baseUseStore<S[K], S>(key as string, store)
 
   // Expose as global for debugging purposes ONLY in dev environments
-  if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+  // Note: process.env may not exist in browser, so we use a safe check
+  const isDev = typeof process === 'undefined' ? true : process.env?.NODE_ENV !== 'production'
+  if (typeof window !== 'undefined' && isDev) {
     (window as unknown as Record<string, unknown>).gstate = store;
     (window as unknown as Record<string, unknown>).gState = store; // Backward compatibility
     (window as unknown as Record<string, unknown>).rgs = store
@@ -104,7 +106,9 @@ export {
   setAuditLogger,
   logAudit,
   validateKey,
-  sanitizeValue
+  sanitizeValue,
+  deriveKeyFromPassword,
+  generateSalt
 } from "./core/security"
 
 // Store-aware Wrappers for Global Convenience
