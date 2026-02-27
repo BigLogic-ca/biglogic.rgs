@@ -175,6 +175,8 @@ export const createFirestoreAdapter = (db: unknown, docPath: string): CloudSyncA
 
 /**
  * Template for generic SQL/PostgreSQL (via standard REST API)
+ * WARNING: In production, auth tokens should be handled server-side or via secure headers.
+ * This template exposes the token in requests - use with caution.
  */
 export const createSqlRestAdapter = (endpoint: string, authToken: string): CloudSyncAdapter => ({
   name: 'SQL-REST-API',
@@ -183,6 +185,7 @@ export const createSqlRestAdapter = (endpoint: string, authToken: string): Cloud
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        // NOTE: In production, use a secure authentication method (e.g., HTTP-only cookies, JWT in memory)
         'Authorization': `Bearer ${authToken}`
       },
       body: JSON.stringify(data)
