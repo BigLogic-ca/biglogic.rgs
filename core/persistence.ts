@@ -69,8 +69,14 @@ export const flushDisk = async (ctx: PersistenceContext) => {
   const queue = Array.from(diskQueue.entries()); diskQueue.clear()
   for (const [key, data] of queue) {
     try {
+      // Validate key to prevent storage key injection
+      if (!key || !/^[a-zA-Z0-9_.-]+$/.test(key) || key.length > 256) {
+        console.warn(`[gstate] Invalid storage key: ${key}`)
+        continue
+      }
+
       let dataValue: unknown = data.value
-      const isEncoded = data.options.encoded || data.options.secure
+      const isEncoded = data.options.encoded || data.options.encrypted
       if (data.options.encrypted) {
         if (!encryptionKey) throw new Error(`Encryption key missing for "${key}"`)
         dataValue = await Security.encrypt(data.value, encryptionKey)
