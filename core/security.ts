@@ -6,6 +6,47 @@
 // --- Infrastructure ---
 
 /**
+ * Maximum execution time for regex matching (ms) to prevent ReDoS attacks
+ */
+const REGEX_TIMEOUT_MS = 100
+
+/**
+ * Tests a regex pattern against a key with timeout protection.
+ * @param pattern Regex pattern string
+ * @param key Key to test
+ * @returns True if pattern matches
+ */
+const safeRegexTest = (pattern: string, key: string): boolean => {
+  const startTime = Date.now()
+  try {
+    const regex = new RegExp(pattern)
+    return regex.test(key)
+  } catch {
+    return false
+  } finally {
+    if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
+      console.warn(`[gstate] Regex timeout for pattern: ${pattern}`)
+    }
+  }
+}
+
+/**
+ * Safe UUID generation with fallback for environments without crypto.randomUUID
+ * @returns UUID string
+ */
+const safeRandomUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID()
+    } catch {
+      // Fallback
+    }
+  }
+  // Fallback: timestamp + random hex
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 11)}`
+}
+
+/**
  * Checks if Web Crypto API is available in the current environment
  */
 export const isCryptoAvailable = typeof crypto !== 'undefined' &&
@@ -194,13 +235,8 @@ export const hasPermission = (rules: AccessRulesMap, key: string, action: Permis
     if (typeof pattern === 'function') {
       matches = pattern(key, _userId)
     } else {
-      // It's a regex string
-      try {
-        matches = new RegExp(pattern).test(key)
-      } catch {
-        // Invalid regex, skip
-        continue
-      }
+      // It's a regex string - use safe regex test to prevent ReDoS
+      matches = safeRegexTest(pattern, key)
     }
 
     if (matches) {
@@ -308,7 +344,7 @@ export type ConsentsMap = Map<string, ConsentRecord[]>
  */
 export const recordConsent = (consents: ConsentsMap, userId: string, purpose: string, granted: boolean): ConsentRecord => {
   const
-    record = { id: crypto.randomUUID(), purpose, granted, timestamp: Date.now() },
+    record = { id: safeRandomUUID(), purpose, granted, timestamp: Date.now() },
     user = consents.get(userId) || []
 
   user.push(record)
