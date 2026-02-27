@@ -50,6 +50,11 @@
   "engines": {
     "node": ">=16.0.0"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "scripts": {
     "build": "rm -rf dist && node ./esbuild.config.mjs && npx tsc -p tsconfig.json --emitDeclarationOnly",
     "build:watch": "node ./esbuild.config.mjs --watch",
