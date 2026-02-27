@@ -247,7 +247,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
   const instance: IStore<S> = {
     _setSilently: (key: string, value: unknown) => {
       const oldSize = _sizes.get(key) || 0, frozen = (_immer && value !== null && typeof value === 'object') ? _immerFreeze!(deepClone(value), true) : value
-      const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && process.env.NODE_ENV !== 'production'
+      const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+      const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProd
       const newSize = hasLimits ? _calculateSize(frozen) : 0
 
       _totalSize = _totalSize - oldSize + newSize
@@ -285,7 +286,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       const frozen = (_immer && sani !== null && typeof sani === 'object') ? _immerFreeze(deepClone(sani), true) : sani
 
       if (!isEqual(oldVal, frozen)) {
-        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && process.env.NODE_ENV !== 'production'
+        const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProd
         const finalSize = hasLimits ? _calculateSize(frozen) : 0
 
         if (_maxObjectSize > 0 && finalSize > _maxObjectSize) {
@@ -409,29 +411,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
 
     // Enterprise Security & Compliance
     addAccessRule: (pattern, permissions) => Security.addAccessRule(_accessRules, pattern, permissions),
-    hasPermission: (key, action, userId) => {
-      if (_accessRules.size === 0) return true
-      const startTime = Date.now()
-      for (const [pattern, perms] of _accessRules) {
-        // Prevent ReDoS: timeout check
-        if (Date.now() - startTime > 100) {
-          console.warn('[gstate] Regex timeout in hasPermission')
-          return false
-        }
-        let matches: boolean
-        if (typeof pattern === 'function') {
-          matches = pattern(key, userId)
-        } else {
-          try {
-            let re = _regexCache.get(pattern)
-            if (!re) { re = new RegExp(pattern); _regexCache.set(pattern, re) }
-            matches = re.test(key)
-          } catch { continue }
-        }
-        if (matches) return perms.includes(action) || perms.includes('admin')
-      }
-      return false
-    },
+    hasPermission: (key, action, userId) => Security.hasPermission(_accessRules, key, action, userId),
     recordConsent: (userId, purpose, granted) => Security.recordConsent(_consents, userId, purpose, granted),
     hasConsent: (userId, purpose) => Security.hasConsent(_consents, userId, purpose),
     getConsents: (userId) => Security.getConsents(_consents, userId),
@@ -467,7 +447,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       getPersistenceContext(),
       // We pass the calculateSize function to update memory usage correctly after hydration
       (val) => {
-        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && process.env.NODE_ENV !== 'production'
+        const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProd
         return hasLimits ? _calculateSize(val) : 0
       },
       () => { _isReady = true; _snapshot = null; _readyResolver(); _emit() }
