@@ -63,7 +63,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
 
     const error = e instanceof Error ? e : new Error(String(e))
     if (onError) onError(error, { operation: 'persist', key: 'FULL_STATE' })
-    else if (!silent) console.error(`[gState] Persist failed: `, error)
+    else if (!silent) console.error(`[gstate] Persist failed: `, error)
   }
 
   const queue = Array.from(diskQueue.entries()); diskQueue.clear()
@@ -88,7 +88,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e))
       if (onError) onError(error, { operation: 'persist', key })
-      else if (!silent) console.error(`[gState] Persist failed: `, error)
+      else if (!silent) console.error(`[gstate] Persist failed: `, error)
     }
   }
 }
@@ -134,7 +134,7 @@ export const hydrateStore = async (
         audit('hydrate', k, false, String(err))
         const error = err instanceof Error ? err : new Error(String(err))
         if (onError) onError(error, { operation: 'hydration', key: k })
-        else if (!silent) console.error(`[gState] Hydration failed for "${k}": `, err)
+        else if (!silent) console.error(`[gstate] Hydration failed for "${k}": `, err)
       }
     }
     const final = (savedV < currentVersion && config.migrate) ? config.migrate(persisted, savedV) : persisted
@@ -153,6 +153,6 @@ export const hydrateStore = async (
   } catch (e) {
     const error = e instanceof Error ? e : new Error(String(e))
     if (onError) onError(error, { operation: 'hydration' })
-    else if (!silent) console.error(`[gState] Hydration failed: `, error)
+    else if (!silent) console.error(`[gstate] Hydration failed: `, error)
   }
 }
