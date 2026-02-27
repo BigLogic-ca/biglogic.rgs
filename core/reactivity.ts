@@ -80,7 +80,7 @@ export const emitChange = (ctx: ReactivityContext, changedKey?: string, isTransa
         catch (e) {
           const error = e instanceof Error ? e : new Error(String(e))
           if (ctx.onError) ctx.onError(error, { operation: 'watcher', key: changedKey })
-          else if (!ctx.silent) console.error(`[gState] Watcher error for "${changedKey}":`, e)
+          else if (!ctx.silent) console.error(`[gstate] Watcher error for "${changedKey}":`, e)
         }
       }
     }
@@ -93,7 +93,7 @@ export const emitChange = (ctx: ReactivityContext, changedKey?: string, isTransa
         catch (e) {
           const error = e instanceof Error ? e : new Error(String(e))
           if (ctx.onError) ctx.onError(error, { operation: 'keyListener', key: changedKey })
-          else if (!ctx.silent) console.error(`[gState] Listener error for "${changedKey}":`, e)
+          else if (!ctx.silent) console.error(`[gstate] Listener error for "${changedKey}":`, e)
         }
       }
     }
@@ -110,7 +110,7 @@ export const emitChange = (ctx: ReactivityContext, changedKey?: string, isTransa
     catch (e) {
       const error = e instanceof Error ? e : new Error(String(e))
       if (ctx.onError) ctx.onError(error, { operation: 'listener' })
-      else if (!ctx.silent) console.error(`[gState] Global listener error: `, e)
+      else if (!ctx.silent) console.error(`[gstate] Global listener error: `, e)
     }
   }
 }
