@@ -49,7 +49,8 @@ const
       { from: '.github/README.md', to: 'README.md' },
       { from: '.github/SECURITY.md', to: 'SECURITY.md' },
       { from: '.github/FUNDING.yml', to: 'FUNDING.yml' },
-      { from: './package.json', to: './package.json' }
+      { from: './package.json', to: './package.json' },
+      { from: 'markdown/*', to: 'markdown/*' }
     ]
   }
 
