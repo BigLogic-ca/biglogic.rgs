@@ -17,7 +17,7 @@ export const initState = <S extends Record<string, unknown>>(
   if (_defaultStore && !config?.namespace) {
     if (!config?.silent) {
       console.warn(
-        "[gState] Store already exists. Pass a unique namespace to create additional stores."
+        "[gstate] Store already exists. Pass a unique namespace to create additional stores."
       )
     }
   }
@@ -163,7 +163,7 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
     (val: T | StateUpdater<T>, options?: PersistOptions) => {
       if (isSelector) {
         if (process.env.NODE_ENV !== 'production') {
-          console.warn('[gState] Cannot set value when using a selector.')
+          console.warn('[gstate] Cannot set value when using a selector.')
         }
         return false
       }
@@ -197,7 +197,7 @@ export const initSync = (
 ): SyncEngine<Record<string, unknown>> => {
   const key = store.namespace
   if (_syncEngines.has(key)) {
-    console.warn(`[gState] Sync engine already exists for namespace "${key}". Call destroySync first.`)
+    console.warn(`[gstate] Sync engine already exists for namespace "${key}". Call destroySync first.`)
     return _syncEngines.get(key)!
   }
 
