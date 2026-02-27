@@ -42,19 +42,19 @@ export const debugPlugin = (): IPlugin => {
             /** Get a specific key */
             get: (key: string) => {
               const val = store.get(key)
-              debugLog(`[gState] get('${key}'):`, val)
+              debugLog(`[gstate] get('${key}'):`, val)
               return val
             },
             /** Set a value */
             set: (key: string, value: unknown) => {
               const result = store.set(key, value)
-              debugLog(`[gState] set('${key}', ${JSON.stringify(value)}):`, result)
+              debugLog(`[gstate] set('${key}', ${JSON.stringify(value)}):`, result)
               return result
             },
             /** Watch a key */
             watch: (key: string, callback: (val: unknown) => void) => {
               const unwatch = store.watch(key, callback)
-              debugLog(`[gState] watching '${key}'`)
+              debugLog(`[gstate] watching '${key}'`)
               return unwatch
             },
             /** Get store info */
@@ -65,7 +65,7 @@ export const debugPlugin = (): IPlugin => {
                 keys: Object.keys(store.list()),
                 size: Object.keys(store.list()).length
               }
-              debugLog('[gState] Store Info:', info)
+              debugLog('[gstate] Store Info:', info)
               return info
             },
             /** Clear console and show banner */
@@ -83,7 +83,7 @@ export const debugPlugin = (): IPlugin => {
           }
 
           // Auto-show banner on install
-          debugLog('[gState] Debug plugin installed. Type gstate.banner() for help.')
+          debugLog('[gstate] Debug plugin installed. Type gstate.banner() for help.')
         }
       },
       onDestroy: () => {
