@@ -6,11 +6,121 @@
 // --- Infrastructure ---
 
 /**
+ * Maximum execution time for regex matching (ms) to prevent ReDoS attacks
+ */
+const REGEX_TIMEOUT_MS = 100
+
+/**
+ * Tests a regex pattern against a key with timeout protection.
+ * @param pattern Regex pattern string
+ * @param key Key to test
+ * @returns True if pattern matches
+ */
+const safeRegexTest = (pattern: string, key: string): boolean => {
+  const startTime = Date.now()
+
+  // Reject dangerous patterns that could cause ReDoS (nested quantifiers)
+  if (/\(\.*\+\?\)\+/.test(pattern) || /\(\.*\?\)\*/.test(pattern)) {
+    console.warn(`[gstate] Potentially dangerous regex pattern blocked: ${pattern}`)
+    return false
+  }
+
+  // Limit pattern length to prevent complexity attacks
+  if (pattern.length > 500) {
+    console.warn(`[gstate] Regex pattern exceeds maximum length limit`)
+    return false
+  }
+
+  try {
+    const regex = new RegExp(pattern)
+    const result = regex.test(key)
+
+    // Log warning if execution was slow (for monitoring)
+    const elapsed = Date.now() - startTime
+    if (elapsed > REGEX_TIMEOUT_MS) {
+      console.warn(`[gstate] Slow regex detected (${elapsed}ms) for pattern: ${pattern}`)
+    }
+
+    return result
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Safe UUID generation with fallback for environments without crypto.randomUUID
+ * @returns UUID string
+ */
+const safeRandomUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID()
+    } catch {
+      // Fallback
+    }
+  }
+  // Fallback: throw error - crypto.randomUUID must be available for security
+  throw new Error('Cryptographically secure random UUID generation is required but crypto.randomUUID is unavailable. Please use a browser or environment with Web Crypto API support.')
+}
+
+/**
  * Checks if Web Crypto API is available in the current environment
  */
 export const isCryptoAvailable = typeof crypto !== 'undefined' &&
   typeof crypto.subtle !== 'undefined' &&
   typeof crypto.subtle.generateKey === 'function'
+
+/**
+ * Derives an encryption key from a password using PBKDF2
+ * @param password User password
+ * @param salt Salt for key derivation (should be stored alongside encrypted data)
+ * @param iterations Number of PBKDF2 iterations (recommended: 100000+)
+ * @returns Promise<EncryptionKey>
+ */
+export const deriveKeyFromPassword = async (
+  password: string,
+  salt: Uint8Array,
+  iterations: number = 100000
+): Promise<EncryptionKey> => {
+  if (!isCryptoAvailable) throw new Error('Web Crypto API not available')
+
+  // Import password as key material
+  const passwordKey = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  )
+
+  // Derive AES-GCM key using PBKDF2
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: new Uint8Array(salt) as unknown as BufferSource,
+      iterations,
+      hash: 'SHA-256'
+    },
+    passwordKey,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  )
+
+  // Generate random IV
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+
+  return { key, iv }
+}
+
+/**
+ * Generates a random salt for key derivation
+ * @param length Salt length in bytes (recommended: 16+)
+ * @returns Uint8Array salt
+ */
+export const generateSalt = (length: number = 16): Uint8Array => {
+  return crypto.getRandomValues(new Uint8Array(length))
+}
 
 export interface EncryptionKey {
   key: CryptoKey
@@ -194,13 +304,8 @@ export const hasPermission = (rules: AccessRulesMap, key: string, action: Permis
     if (typeof pattern === 'function') {
       matches = pattern(key, _userId)
     } else {
-      // It's a regex string
-      try {
-        matches = new RegExp(pattern).test(key)
-      } catch {
-        // Invalid regex, skip
-        continue
-      }
+      // It's a regex string - use safe regex test to prevent ReDoS
+      matches = safeRegexTest(pattern, key)
     }
 
     if (matches) {
@@ -308,7 +413,7 @@ export type ConsentsMap = Map<string, ConsentRecord[]>
  */
 export const recordConsent = (consents: ConsentsMap, userId: string, purpose: string, granted: boolean): ConsentRecord => {
   const
-    record = { id: crypto.randomUUID(), purpose, granted, timestamp: Date.now() },
+    record = { id: safeRandomUUID(), purpose, granted, timestamp: Date.now() },
     user = consents.get(userId) || []
 
   user.push(record)

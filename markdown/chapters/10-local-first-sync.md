@@ -26,7 +26,8 @@ const store = gstate({
   namespace: 'myapp',
   sync: {
     endpoint: 'https://api.example.com/sync',
-    authToken: 'your-token',
+    // Use a getter function for secure token retrieval
+    authToken: () => localStorage.getItem('auth_token'),
     autoSyncInterval: 30000,  // Sync every 30s
     syncOnReconnect: true    // Auto-sync when back online
   }
@@ -50,7 +51,7 @@ function TodoList() {
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `endpoint` | `string` | required | Remote sync server URL |
-| `authToken` | `string` | - | Authentication token |
+| `authToken` | `string` or `() => string \| null` | - | Authentication token or getter function for secure retrieval |
 | `strategy` | `string` | `'last-write-wins'` | Conflict resolution |
 | `autoSyncInterval` | `number` | `30000` | Auto-sync interval (ms) |
 | `syncOnReconnect` | `boolean` | `true` | Sync on network restore |

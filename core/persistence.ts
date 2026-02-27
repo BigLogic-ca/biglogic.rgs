@@ -46,6 +46,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
 
     let dataValue: unknown
     const isEncoded = config?.encoded
+
     if (isEncoded) {
       dataValue = btoa(JSON.stringify(stateObj))
     } else {
@@ -57,17 +58,25 @@ export const flushDisk = async (ctx: PersistenceContext) => {
       d: dataValue, _sys_v: currentVersion, _b64: isEncoded ? true : undefined
     }))
     audit('set', 'FULL_STATE', true)
+
   } catch (e) {
+
     const error = e instanceof Error ? e : new Error(String(e))
     if (onError) onError(error, { operation: 'persist', key: 'FULL_STATE' })
-    else if (!silent) console.error(`[gState] Persist failed: `, error)
+    else if (!silent) console.error(`[gstate] Persist failed: `, error)
   }
 
   const queue = Array.from(diskQueue.entries()); diskQueue.clear()
   for (const [key, data] of queue) {
     try {
+      // Validate key to prevent storage key injection
+      if (!key || !/^[a-zA-Z0-9_.-]+$/.test(key) || key.length > 256) {
+        console.warn(`[gstate] Invalid storage key: ${key}`)
+        continue
+      }
+
       let dataValue: unknown = data.value
-      const isEncoded = data.options.encoded || data.options.secure
+      const isEncoded = data.options.encoded || data.options.encrypted
       if (data.options.encrypted) {
         if (!encryptionKey) throw new Error(`Encryption key missing for "${key}"`)
         dataValue = await Security.encrypt(data.value, encryptionKey)
@@ -85,7 +94,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e))
       if (onError) onError(error, { operation: 'persist', key })
-      else if (!silent) console.error(`[gState] Persist failed: `, error)
+      else if (!silent) console.error(`[gstate] Persist failed: `, error)
     }
   }
 }
@@ -131,7 +140,7 @@ export const hydrateStore = async (
         audit('hydrate', k, false, String(err))
         const error = err instanceof Error ? err : new Error(String(err))
         if (onError) onError(error, { operation: 'hydration', key: k })
-        else if (!silent) console.error(`[gState] Hydration failed for "${k}": `, err)
+        else if (!silent) console.error(`[gstate] Hydration failed for "${k}": `, err)
       }
     }
     const final = (savedV < currentVersion && config.migrate) ? config.migrate(persisted, savedV) : persisted
@@ -150,6 +159,6 @@ export const hydrateStore = async (
   } catch (e) {
     const error = e instanceof Error ? e : new Error(String(e))
     if (onError) onError(error, { operation: 'hydration' })
-    else if (!silent) console.error(`[gState] Hydration failed: `, error)
+    else if (!silent) console.error(`[gstate] Hydration failed: `, error)
   }
 }

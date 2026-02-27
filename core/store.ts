@@ -201,7 +201,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
           catch (e) {
             const error = e instanceof Error ? e : new Error(String(e))
             if (_onError) _onError(error, { operation: 'watcher', key: changedKey })
-            else if (!_silent) console.error(`[gState] Watcher error for "${changedKey}":`, e)
+            else if (!_silent) console.error(`[gstate] Watcher error for "${changedKey}":`, e)
           }
         }
       }
@@ -214,7 +214,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
           catch (e) {
             const error = e instanceof Error ? e : new Error(String(e))
             if (_onError) _onError(error, { operation: 'keyListener', key: changedKey })
-            else if (!_silent) console.error(`[gState] Listener error for "${changedKey}":`, e)
+            else if (!_silent) console.error(`[gstate] Listener error for "${changedKey}":`, e)
           }
         }
       }
@@ -228,7 +228,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       catch (e) {
         const error = e instanceof Error ? e : new Error(String(e))
         if (_onError) _onError(error, { operation: 'listener' })
-        else if (!_silent) console.error(`[gState] Global listener error: `, e)
+        else if (!_silent) console.error(`[gstate] Global listener error: `, e)
       }
     }
   }
@@ -247,7 +247,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
   const instance: IStore<S> = {
     _setSilently: (key: string, value: unknown) => {
       const oldSize = _sizes.get(key) || 0, frozen = (_immer && value !== null && typeof value === 'object') ? _immerFreeze!(deepClone(value), true) : value
-      const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && process.env.NODE_ENV !== 'production'
+      const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+      const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProd
       const newSize = hasLimits ? _calculateSize(frozen) : 0
 
       _totalSize = _totalSize - oldSize + newSize
@@ -266,7 +267,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
         key === '__proto__' || key === 'constructor' || key === 'prototype'
 
       if (isUnsafeKey(pluginName) || isUnsafeKey(methodName)) {
-        console.warn('[gState] Refusing to register method with unsafe key:', pluginName, methodName)
+        console.warn('[gstate] Refusing to register method with unsafe key:', pluginName, methodName)
         return
       }
 
@@ -275,8 +276,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
     },
     set: (key: string, valOrUp: unknown, options: PersistOptions = {}): boolean => {
       const oldVal = _store.get(key), newVal = _immer && typeof valOrUp === 'function' ? _immerProduce!(oldVal, valOrUp as (draft: unknown) => void) : valOrUp
-      if (_validateInput && !Security.validateKey(key)) { if (!_silent) console.warn(`[gState] Invalid key: ${key}`); return false }
-      if (!Security.hasPermission(_accessRules, key, 'write', _userId)) { _audit('set', key, false, 'RBAC Denied'); if (!_silent) console.error(`[gState] RBAC Denied for "${key}"`); return false }
+      if (_validateInput && !Security.validateKey(key)) { if (!_silent) console.warn(`[gstate] Invalid key: ${key}`); return false }
+      if (!Security.hasPermission(_accessRules, key, 'write', _userId)) { _audit('set', key, false, 'RBAC Denied'); if (!_silent) console.error(`[gstate] RBAC Denied for "${key}"`); return false }
 
       const sani = _validateInput ? Security.sanitizeValue(newVal) : newVal
       const oldSize = _sizes.get(key) || 0
@@ -285,13 +286,14 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       const frozen = (_immer && sani !== null && typeof sani === 'object') ? _immerFreeze(deepClone(sani), true) : sani
 
       if (!isEqual(oldVal, frozen)) {
-        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && process.env.NODE_ENV !== 'production'
+        const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProd
         const finalSize = hasLimits ? _calculateSize(frozen) : 0
 
         if (_maxObjectSize > 0 && finalSize > _maxObjectSize) {
           const error = new Error(`Object size (${finalSize} bytes) exceeds maxObjectSize (${_maxObjectSize} bytes)`)
           if (_onError) _onError(error, { operation: 'set', key })
-          else if (!_silent) console.warn(`[gState] ${error.message} for "${key}"`)
+          else if (!_silent) console.warn(`[gstate] ${error.message} for "${key}"`)
         }
 
         if (_maxTotalSize > 0) {
@@ -299,7 +301,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
           if (est > _maxTotalSize) {
             const error = new Error(`Total store size (${est} bytes) exceeds limit (${_maxTotalSize} bytes)`)
             if (_onError) _onError(error, { operation: 'set' })
-            else if (!_silent) console.warn(`[gState] ${error.message}`)
+            else if (!_silent) console.warn(`[gstate] ${error.message}`)
           }
         }
 
@@ -337,7 +339,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       } catch (e) {
         const error = e instanceof Error ? e : new Error(String(e))
         if (_onError) _onError(error, { operation: 'compute', key })
-        else if (!_silent) console.error(`[gState] Compute error for "${key}": `, e)
+        else if (!_silent) console.error(`[gstate] Compute error for "${key}": `, e)
         return null as unknown as T
       }
     },
@@ -409,23 +411,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
 
     // Enterprise Security & Compliance
     addAccessRule: (pattern, permissions) => Security.addAccessRule(_accessRules, pattern, permissions),
-    hasPermission: (key, action, userId) => {
-      if (_accessRules.size === 0) return true
-      for (const [pattern, perms] of _accessRules) {
-        let matches: boolean
-        if (typeof pattern === 'function') {
-          matches = pattern(key, userId)
-        } else {
-          try {
-            let re = _regexCache.get(pattern)
-            if (!re) { re = new RegExp(pattern); _regexCache.set(pattern, re) }
-            matches = re.test(key)
-          } catch { continue }
-        }
-        if (matches) return perms.includes(action) || perms.includes('admin')
-      }
-      return false
-    },
+    hasPermission: (key, action, userId) => Security.hasPermission(_accessRules, key, action, userId),
     recordConsent: (userId, purpose, granted) => Security.recordConsent(_consents, userId, purpose, granted),
     hasConsent: (userId, purpose) => Security.hasConsent(_consents, userId, purpose),
     getConsents: (userId) => Security.getConsents(_consents, userId),
@@ -461,7 +447,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       getPersistenceContext(),
       // We pass the calculateSize function to update memory usage correctly after hydration
       (val) => {
-        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && process.env.NODE_ENV !== 'production'
+        const isProd = typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+        const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProd
         return hasLimits ? _calculateSize(val) : 0
       },
       () => { _isReady = true; _snapshot = null; _readyResolver(); _emit() }

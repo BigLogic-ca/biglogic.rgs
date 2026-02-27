@@ -23,7 +23,7 @@ export const runHook = <S extends Record<string, unknown>>(
       catch (e) {
         const error = e instanceof Error ? e : new Error(String(e))
         if (ctx.onError) ctx.onError(error, { operation: `plugin:${p.name}:${name}`, key: hookContext.key })
-        else if (!ctx.silent) console.error(`[gState] Plugin "${p.name}" error:`, e)
+        else if (!ctx.silent) console.error(`[gstate] Plugin "${p.name}" error:`, e)
       }
     }
   }
@@ -40,6 +40,6 @@ export const installPlugin = <S extends Record<string, unknown>>(
   } catch (e) {
     const error = e instanceof Error ? e : new Error(String(e))
     if (ctx.onError) ctx.onError(error, { operation: 'plugin:install', key: plugin.name })
-    else if (!ctx.silent) console.error(`[gState] Failed to install plugin "${plugin.name}": `, e)
+    else if (!ctx.silent) console.error(`[gstate] Failed to install plugin "${plugin.name}": `, e)
   }
 }

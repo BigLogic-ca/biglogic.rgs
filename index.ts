@@ -45,9 +45,12 @@ export const gstate = <S extends Record<string, unknown>>(
   // Magic function that returns a typed hook when called with a key
   const magic = <K extends keyof S>(key: K) => baseUseStore<S[K], S>(key as string, store)
 
-  // Expose as global for debugging purposes in dev environments
-  if (typeof window !== 'undefined') {
-    (window as unknown as Record<string, unknown>).gState = store;
+  // Expose as global for debugging purposes ONLY in dev environments
+  // Note: process.env may not exist in browser, so we use a safe check
+  const isDev = typeof process === 'undefined' ? true : process.env?.NODE_ENV !== 'production'
+  if (typeof window !== 'undefined' && isDev) {
+    (window as unknown as Record<string, unknown>).gstate = store;
+    (window as unknown as Record<string, unknown>).gState = store; // Backward compatibility
     (window as unknown as Record<string, unknown>).rgs = store
   }
 
@@ -103,7 +106,9 @@ export {
   setAuditLogger,
   logAudit,
   validateKey,
-  sanitizeValue
+  sanitizeValue,
+  deriveKeyFromPassword,
+  generateSalt
 } from "./core/security"
 
 // Store-aware Wrappers for Global Convenience
@@ -114,7 +119,7 @@ export const hasPermission = (key: string, action: Security.Permission, uid?: st
 /** @deprecated Use store instance methods for better isolation in multi-store scenarios */
 export const recordConsent = (uid: string, p: string, g: boolean) => {
   const s = getStore()
-  if (!s) throw new Error('[gState] recordConsent failed: No store found. call initState() first.')
+  if (!s) throw new Error('[gstate] recordConsent failed: No store found. call initState() first.')
   return s.recordConsent(uid, p, g)
 }
 /** @deprecated Use store instance methods for better isolation in multi-store scenarios */
@@ -126,13 +131,13 @@ export const revokeConsent = (uid: string, p: string) => getStore()?.revokeConse
 /** @deprecated Use store instance methods for better isolation in multi-store scenarios */
 export const exportUserData = (uid: string) => {
   const s = getStore()
-  if (!s) throw new Error('[gState] exportUserData failed: No store found.')
+  if (!s) throw new Error('[gstate] exportUserData failed: No store found.')
   return s.exportUserData(uid)
 }
 /** @deprecated Use store instance methods for better isolation in multi-store scenarios */
 export const deleteUserData = (uid: string) => {
   const s = getStore()
-  if (!s) throw new Error('[gState] deleteUserData failed: No store found.')
+  if (!s) throw new Error('[gstate] deleteUserData failed: No store found.')
   return s.deleteUserData(uid)
 }
 
@@ -167,7 +172,7 @@ declare global {
   var gstate: <S extends Record<string, unknown>>(initialState: S, configOrNamespace?: string | StoreConfig<S>) => IStore<S> & ((key: string) => unknown)
   var initState: typeof import("./core/hooks").initState
   var destroyState: typeof import("./core/hooks").destroyState
-  var gState: IStore<Record<string, unknown>>
+  var gState: IStore<Record<string, unknown>>  // Backward compatibility alias
   var rgs: IStore<Record<string, unknown>>
   var useStore: typeof baseUseStore
 }

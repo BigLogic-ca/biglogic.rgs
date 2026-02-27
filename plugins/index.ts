@@ -33,7 +33,7 @@ export const loggerPlugin = <S extends Record<string, unknown>>(options?: { coll
     onSet: ({ key, value, version }: PluginContext<S>) => {
       const
         time = new Date().toLocaleTimeString(),
-        groupLabel = `[gState] SET: ${key} (v${version}) @ ${time}`
+        groupLabel = `[gstate] SET: ${key} (v${version}) @ ${time}`
 
       if (options?.collapsed) console.groupCollapsed(groupLabel)
       else console.group(groupLabel)
@@ -42,7 +42,7 @@ export const loggerPlugin = <S extends Record<string, unknown>>(options?: { coll
       console.groupEnd()
     },
     onRemove: ({ key }) => {
-      console.warn(`[gState] REMOVED: ${key}`)
+      console.warn(`[gstate] REMOVED: ${key}`)
     },
     onTransaction: ({ key }) => {
       if (key === 'START') console.group('── TRANSACTION START ──')

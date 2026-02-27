@@ -98,7 +98,7 @@ export const cloudSyncPlugin = <S extends Record<string, unknown>>(options: Clou
             }
           } catch (err) {
             stats.errors++
-            console.error(`[gState] Cloud Sync Failed (${adapter.name}):`, err)
+            console.error(`[gstate] Cloud Sync Failed (${adapter.name}):`, err)
             return { status: 'error', error: String(err), stats }
           }
         })
@@ -175,17 +175,30 @@ export const createFirestoreAdapter = (db: unknown, docPath: string): CloudSyncA
 
 /**
  * Template for generic SQL/PostgreSQL (via standard REST API)
+ * WARNING: In production, auth tokens should be handled server-side or via secure headers.
+ * This template now uses a function to retrieve the token dynamically to avoid exposure.
+ * @param endpoint - The API endpoint URL
+ * @param getAuthToken - Function that returns the current auth token (recommended: retrieve from memory/httpOnly cookie)
  */
-export const createSqlRestAdapter = (endpoint: string, authToken: string): CloudSyncAdapter => ({
+export const createSqlRestAdapter = (endpoint: string, getAuthToken: () => string | null): CloudSyncAdapter => ({
   name: 'SQL-REST-API',
   save: async (data: Record<string, unknown>) => {
+    const authToken = getAuthToken()
+    if (!authToken) {
+      console.warn('[gstate] No auth token available for SQL-REST sync')
+      return false
+    }
+
     const response = await fetch(endpoint, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        // NOTE: In production, use HTTP-only cookies instead of Bearer tokens
+        // This is provided as a template only - production should use secure auth
         'Authorization': `Bearer ${authToken}`
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      credentials: 'same-origin'
     })
     return response.ok
   }
