@@ -21,7 +21,7 @@ const [user] = useAppStore('user')
 
 ## Features
 
-- 🎨 Highlights `rgs` and `gState` in code
+- 🎨 Highlights `rgs`, `gState` and `gstate` in code
 - 💻 Code only - no highlighting in comments
 - ⚡ Works with TypeScript, JavaScript, TSX, JSX files
 
@@ -33,7 +33,7 @@ const [user] = useAppStore('user')
 
 ## Usage
 
-Open any `.ts`, `.tsx`, `.js`, or `.jsx` file - `rgs` and `gState` will be automatically highlighted.
+Open any `.ts`, `.tsx`, `.js`, or `.jsx` file - `rgs`, `gState` and `gstate` will be automatically highlighted.
 
 ## License
 
