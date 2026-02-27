@@ -279,7 +279,8 @@ const store = gstate({
   namespace: 'myapp',
   sync: {
     endpoint: 'https://api.example.com/sync',
-    authToken: 'your-token',
+    // Use a getter function to avoid exposing token in memory
+    authToken: () => localStorage.getItem('auth_token'),
     autoSyncInterval: 30000,  // Sync every 30s
     syncOnReconnect: true,   // Auto-sync when back online
     strategy: 'last-write-wins'  // Conflict resolution
