@@ -51,10 +51,13 @@ jobs:
      run: npm test
 
    - name: Generate .npmrc
-     run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+     run: |
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+      cp .npmrc dist/.npmrc
 
    - name: Publish to npm
-     run: npm publish
+     working-directory: ./dist
+     run: npm publish --access=public
      env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
