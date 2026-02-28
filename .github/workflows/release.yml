@@ -56,7 +56,7 @@ jobs:
       cp .npmrc dist/.npmrc
 
    - name: Publish to npm
-     working-directory: ./dist
+     # working-directory: ./dist
      run: npm publish --access=public
      env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
