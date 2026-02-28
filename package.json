@@ -3,9 +3,6 @@
   "version": "3.7.6",
   "description": "Argis (RGS) - Reactive Global State: A react state everywhere made easy",
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
   "keywords": [
     "rgs",
     "gstate",
@@ -45,22 +42,10 @@
     "type": "git",
     "url": "git+https://github.com/BigLogic-ca/rgs.git"
   },
-  "files": [
-    "dist"
-  ],
   "main": "./index.js",
   "types": "./index.d.ts",
-  "exports": {
-    ".": "./dist/index.js",
-    "./core/minimal": "./dist/core/minimal.js"
-  },
   "engines": {
     "node": ">=16.0.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/",
-    "provenance": true
   },
   "scripts": {
     "dev": "npm run build:watch",
