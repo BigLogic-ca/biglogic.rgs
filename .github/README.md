@@ -379,6 +379,87 @@ npm run test:e2e
 
 ---
 
+## 📦 Ultra-Minimal Build (< 2KB)
+
+RGS provides an **ultra-minimal** version for projects where bundle size is critical. This version includes only the core state management functionality.
+
+> [!WARNING]
+> ⚠️ **Not indicated for security and enterprise-level applications.**
+> For production apps requiring AES-256 encryption, RBAC, GDPR compliance, or audit logging, use the full version.
+
+---
+
+### What's Included
+
+- `createStore()` - Create a reactive store
+- `get(key)` - Read values
+- `set(key, value)` - Update values with automatic immutability
+- `subscribe(listener)` - Subscribe to changes
+
+### What's NOT Included (Full Features)
+
+- ❌ Persistence (localStorage, etc.)
+- ❌ Security (RBAC, encryption)
+- ❌ Sync/Cloud features
+- ❌ Plugin system
+- ❌ Immer integration
+- ❌ Computed values
+- ❌ React hooks
+
+### How to Use
+
+#### Minimal Version (~0.16 KB)
+
+For maximum performance and minimum bundle size:
+
+```javascript
+// Import minimal version
+import { createStore } from '@biglogic/rgs/core/minimal'
+
+const store = createStore({ count: 0 })
+
+// Basic operations
+store.get('count')        // → 0
+store.set('count', 5)    // → true
+store.subscribe(() => console.log('changed!'))
+```
+
+#### Full Version (~32 KB)
+
+For production apps with all features:
+
+```javascript
+// Import full version (default)
+import { gstate, createStore } from '@biglogic/rgs'
+
+// Zen way - creates hook + store
+const useCounter = gstate({ count: 0 })
+const count = useCounter(s => s.count)
+
+// Classic way
+const store = createStore({ count: 0 })
+store.set('count', 5, { persist: true })
+store._addPlugin(undoRedoPlugin())
+```
+
+### When to Use What?
+
+| Scenario | Use | Size |
+|----------|-----|------|
+| Embedded/IoT | Minimal | 0.16 KB |
+| Widgets/Badges | Minimal | 0.16 KB |
+| React Apps | Full | ~32 KB |
+| Enterprise | Full | ~32 KB |
+
+### Size Comparison
+
+| Version | Size | Use Case |
+|---------|------|----------|
+| **Minimal** | 0.16 KB | Embedded systems, tiny apps |
+| **Full** | ~32 KB | Production apps |
+
+---
+
 ## 📄 License
 
 MIT © [Dario Passariello](https://github.com/dpassariello)
