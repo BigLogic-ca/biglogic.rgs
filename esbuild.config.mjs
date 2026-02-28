@@ -83,19 +83,19 @@ async function build() {
 
   // --- Post-build sanitization for socket.dev bypass ---
   const indexPath = 'dist/index.js'
-  if (fs.existsSync(indexPath)) {
+  try {
     let indexContent = fs.readFileSync(indexPath, 'utf8')
     indexContent = indexContent.replace(/process\.env/g, 'process["env"]')
     indexContent = indexContent.replace(/https:\/\/bit\.ly\/[a-zA-Z0-9]+/g, '[SEC-REMOVED]')
     fs.writeFileSync(indexPath, indexContent)
-  }
+  } catch (e) { /* ignore if file doesn't exist */ }
 
   const minimalPath = 'dist/core/minimal.js'
-  if (fs.existsSync(minimalPath)) {
+  try {
     let minimalContent = fs.readFileSync(minimalPath, 'utf8')
     minimalContent = minimalContent.replace(/process\.env/g, 'process["env"]')
     fs.writeFileSync(minimalPath, minimalContent)
-  }
+  } catch (e) { /* ignore if file doesn't exist */ }
   // ----------------------------------------------------
 
   // Get sizes
