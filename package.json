@@ -64,11 +64,11 @@
     "build": "node -e \"const fs=require('fs');if(fs.existsSync('./dist'))fs.rmSync('./dist',{recursive:true});\" && node ./esbuild.config.mjs && npx tsc -p tsconfig.json --emitDeclarationOnly",
     "build:watch": "node ./esbuild.config.mjs --watch",
     "build:extension": "cd vscode-extension && vsce package -o ../dist/rgs-extension.vsix",
+    "npm:pack": "npm run build && cd dist && npm pack",
+    "npm:publish": "npm run build && npm run build:extension && cd dist && npm publish --access=public",
     "lint": "cd tests && npm run lint",
     "tsc": "cd tests && tsc --noEmit",
-    "test": "cd tests && npm test",
-    "npm:pack": "npm run build && cd dist && npm pack",
-    "npm:publish": "npm run build && npm run build:extension && cd dist && npm publish --access=public"
+    "test": "cd tests && npm test"
   },
   "devDependencies": {
     "@types/node": "^25.3.2",
