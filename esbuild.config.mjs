@@ -3,7 +3,6 @@ import esbuild from 'esbuild'
 import { copy } from 'esbuild-plugin-copy'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
 
-import pk from './package.json' with { type: 'json' }
 import fs from 'node:fs'
 
 ///
@@ -69,7 +68,7 @@ async function build() {
     entryPoints: ['./index.ts'],
     outfile: 'dist/index.js',
     plugins: [
-      nodeExternalsPlugin(),
+      // nodeExternalsPlugin(),
       copy({ assets: files.assets })
     ]
   })
