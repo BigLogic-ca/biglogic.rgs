@@ -19,7 +19,6 @@ $RECYCLE.BIN
 \.vs
 \.dev
 \.private
-\.docs
 \.backup
 \.git
 \.github
