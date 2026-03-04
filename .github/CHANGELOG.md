@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.8.2] - 2026-03-03
+
+### 🏗️ Build & Distribution
+- **Optimized Build**: Full version now 68.73 KB, minimal version 0.43 KB
+- **esbuild Configuration**: Updated build scripts for better performance
+- **TypeScript Declarations**: Improved type exports
+
+### 🧪 Testing & Quality
+- **Test Suite**: 70 tests passing, 1 skipped
+- **TypeScript**: Strict mode enabled, zero errors
+- **ESLint**: Clean linting across entire codebase
+- **Stress Testing**: Verified with 10,000+ keys and concurrent operations
+
+### 🌟 Features (Current)
+- **gstate()**: One-liner store + hook creation
+- **Type-Safe Selectors**: Full TypeScript autocomplete support
+- **AES-256-GCM Encryption**: Built-in security
+- **RBAC**: Role-based access control
+- **GDPR Compliance**: Export/delete user data
+- **Persistence**: localStorage, sessionStorage, memory, IndexedDB
+- **Plugins**: 11+ official plugins (Undo/Redo, Sync, Schema, etc.)
+- **Local-First Sync**: Offline-by-default with cloud sync
+
+---
+
 ## [3.5.2] - 2026-02-19
 
 ### 🧪 Testing & E2E

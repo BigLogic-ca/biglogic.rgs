@@ -3,7 +3,6 @@ import esbuild from 'esbuild'
 import { copy } from 'esbuild-plugin-copy'
 import { nodeExternalsPlugin } from 'esbuild-node-externals'
 
-import pk from './package.json' with { type: 'json' }
 import fs from 'node:fs'
 
 ///
@@ -25,15 +24,16 @@ const common = {
 
 const files = {
   assets: [
-    { from: '.github/README.md', to: '../docs/README.md' },
-    { from: '.github/README.md', to: 'docs/README.md' },
+    // ROOT
     { from: '.github/COPYRIGHT.md', to: 'COPYRIGHT.md' },
     { from: '.github/LICENSE.md', to: 'LICENSE.md' },
     { from: '.github/README.md', to: 'README.md' },
     { from: '.github/SECURITY.md', to: 'SECURITY.md' },
     { from: '.github/FUNDING.yml', to: 'FUNDING.yml' },
-    { from: './package.json', to: './package.json' },
-    { from: 'docs/**/*', to: 'docs/' }
+    { from: 'package.json', to: 'package.json' },
+    // DOCS
+    { from: '.github/README.md', to: 'docs/README.md' },
+    { from: 'docs/**/*', to: 'docs/' },
   ]
 }
 
@@ -68,7 +68,7 @@ async function build() {
     entryPoints: ['./index.ts'],
     outfile: 'dist/index.js',
     plugins: [
-      nodeExternalsPlugin(),
+      // nodeExternalsPlugin(),
       copy({ assets: files.assets })
     ]
   })
