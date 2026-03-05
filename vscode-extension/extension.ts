@@ -1441,6 +1441,7 @@ export function activate(context: vscode.ExtensionContext): void {
     try {
       const analysis = await analyzer.analyze(workspaceFolders[0])
       treeProvider.setAnalysis(analysis)
+      welcomeProvider.setAnalysis(analysis)
 
       const warningCount = analysis.violations.filter((v: Violation) => v.severity === 'warning').length
       const errorCount = analysis.violations.filter((v: Violation) => v.severity === 'error').length
