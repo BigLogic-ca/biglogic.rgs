@@ -1,0 +1,75 @@
+import { defineConfig, type Options } from 'tsup'
+import { sassPlugin } from 'esbuild-sass-plugin'
+
+// import injectCss from './tsup.plugin.injectCss'
+// import Types from './tsup.plugin.types'
+import copyStatic from './tsup.plugin.copyStatic'
+
+import pk from "./package.json"
+import buildType from './core/buildType'
+
+export default defineConfig(
+  {
+    plugins: [
+      // injectCss,
+      // Types,
+      copyStatic
+    ] as Options['plugins'],
+    globalName: pk.name,
+    format: ['cjs', 'esm'],
+    entry: ['index.ts'],
+    platform: 'browser',
+    target: "es2024",
+    outDir: 'dist',
+    keepNames: false,
+    skipNodeModulesBundle: true,
+    minifyWhitespace: true,
+    legacyOutput: false,
+    injectStyle: true,
+    splitting: false,
+    sourcemap: false,
+    treeshake: true,
+    minify: 'terser',
+    bundle: true,
+    clean: true,
+    dts: false,
+    external: [
+      // ...Object.keys(pk.dependencies),
+      ...Object.keys(pk.devDependencies),
+      ...Object.keys(pk.peerDependencies),
+      ...Object.keys(pk.peerDependenciesMeta)
+    ],
+    noExternal: [
+      "immer"
+    ],
+    // inject: [],
+    swc: {
+      swcrc: true
+    },
+    esbuildPlugins: [
+      sassPlugin()
+    ],
+    esbuildOptions(options) {
+      options.legalComments = 'none'
+      options.logLevel = 'warning'
+      // options.minify = true
+    },
+    terserOptions: {
+      compress: {
+        drop_console: true, // Removes console.log statements
+        drop_debugger: true // Removes debugger statements
+      }
+    },
+    loader: {
+      '.ts': 'ts',
+      '.tsx': 'tsx',
+      '.js': 'js',
+      '.jsx': 'jsx',
+      '.css': 'css'
+    },
+    async onSuccess() {
+      await buildType()
+      console.debug("Compilation: OK")
+    }
+  }
+)
