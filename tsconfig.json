@@ -47,7 +47,8 @@
   ],
   "include": [
     "./**/*.ts",
-    "./**/*.tsx"
+    "./**/*.tsx",
+    "vscode-extension/extension.js"
   ],
   "exclude": [
     "node_modules",
@@ -60,6 +61,8 @@
     "*OLD*",
     "tests/**/*",
     "examples/**/*",
-    "docs/**/*"
+    "docs/**/*",
+    "tsup.config.ts",
+    "tsup.plugin.*.ts"
   ]
 }
