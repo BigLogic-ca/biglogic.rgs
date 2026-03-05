@@ -6,7 +6,7 @@
   "publisher": "biglogic",
   "repository": {
     "type": "git",
-    "url": "https://github.com/biglogic/rgs-highlighter"
+    "url": "https://github.com/biglogic/rgs"
   },
   "engines": {
     "vscode": "^1.75.0"
@@ -25,6 +25,27 @@
     "workspaceContains:**/*.js",
     "workspaceContains:**/*.jsx"
   ],
-  "main": "./extension.js",
-  "contributes": {}
+  "main": "./extension.ts",
+  "contributes": {
+    "languages": [
+      {
+        "id": "rgs",
+        "aliases": [
+          "RGS",
+          "rgs"
+        ],
+        "extensions": [
+          ".rgs"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "rgs",
+        "scopeName": "source.rgs",
+        "path": "./syntaxes/rgs.tmLanguage.json"
+      }
+    ]
+  }
 }
