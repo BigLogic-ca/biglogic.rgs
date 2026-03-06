@@ -228,7 +228,6 @@ interface StoreInfo {
   config: Record<string, unknown>
   keys: string[]
   plugins: string[]
-  // New fields for enhanced details
   category: 'project' | 'test'
   testFramework?: 'jest' | 'playwright' | undefined
   testFile?: string
@@ -237,7 +236,6 @@ interface StoreInfo {
     rbac: boolean
     namespace?: string
   }
-  // State properties extracted from initial state
   stateProperties: StatePropertyInfo[]
 }
 
@@ -267,8 +265,8 @@ class StatePropertyTreeItem extends vscode.TreeItem {
   propertyInfo?: StatePropertyInfo
 
   constructor(
-    public label: string,
-    public collapsibleState: vscode.TreeItemCollapsibleState,
+    override label: string,
+    override collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly itemType: string
   ) {
     super(label, collapsibleState)
@@ -301,20 +299,16 @@ class RGSStatePropertiesProvider implements vscode.TreeDataProvider<StatePropert
     }
 
     if (element) {
-      // Show property details when expanded
       if (element.propertyInfo) {
         const props = element.propertyInfo
         const children: StatePropertyTreeItem[] = []
 
-        // Type
         const typeItem = new StatePropertyTreeItem(`Type: ${props.type}`, vscode.TreeItemCollapsibleState.None, 'detail')
         children.push(typeItem)
 
-        // Default value
         const defaultItem = new StatePropertyTreeItem(`Default: ${props.defaultValue}`, vscode.TreeItemCollapsibleState.None, 'detail')
         children.push(defaultItem)
 
-        // Attributes
         const attrs: string[] = []
         if (props.isPersisted) attrs.push('Persisted')
         if (props.isEncrypted) attrs.push('Encrypted')
@@ -330,10 +324,8 @@ class RGSStatePropertiesProvider implements vscode.TreeDataProvider<StatePropert
       return []
     }
 
-    // Root level - show store name and properties
     const items: StatePropertyTreeItem[] = []
 
-    // Store header
     const header = new StatePropertyTreeItem(
       `Store: ${this.currentStore.name}`,
       vscode.TreeItemCollapsibleState.None,
@@ -342,7 +334,6 @@ class RGSStatePropertiesProvider implements vscode.TreeDataProvider<StatePropert
     header.description = `${this.currentStore.stateProperties.length} properties`
     items.push(header)
 
-    // Properties
     if (this.currentStore.stateProperties.length > 0) {
       for (const prop of this.currentStore.stateProperties) {
         const propItem = new StatePropertyTreeItem(
@@ -353,14 +344,12 @@ class RGSStatePropertiesProvider implements vscode.TreeDataProvider<StatePropert
         propItem.propertyInfo = prop
         propItem.description = prop.type
 
-        // Add icons based on attributes
         let icon = ''
         if (prop.isEncrypted) icon += '🔒 '
         if (prop.isPersisted) icon += '💾 '
         if (prop.isReadonly) icon += '📖 '
         if (icon) propItem.label = icon + prop.key
 
-        // Make clickable to go to definition
         propItem.command = {
           command: 'rgs.goToPropertyDefinition',
           title: 'Go to Property Definition',
@@ -419,23 +408,19 @@ class RGSWelcomeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
   getChildren(): vscode.TreeItem[] {
     const items: vscode.TreeItem[] = []
 
-    // Header
     const header = new vscode.TreeItem('⚡ RGS (Argis)', vscode.TreeItemCollapsibleState.None)
     header.contextValue = 'header'
     items.push(header)
 
-    // Info
     const info = new vscode.TreeItem('State Management for React', vscode.TreeItemCollapsibleState.None)
     info.contextValue = 'info'
     items.push(info)
 
-    // Action
     const analyzeAction = new vscode.TreeItem('📊 Analyze Workspace', vscode.TreeItemCollapsibleState.None)
     analyzeAction.command = { command: 'rgs.analyzeWorkspace', title: 'Analyze Workspace' }
     analyzeAction.contextValue = 'action'
     items.push(analyzeAction)
 
-    // Version
     const version = new vscode.TreeItem('v3.8.2 | MIT License', vscode.TreeItemCollapsibleState.None)
     version.contextValue = 'footer'
     items.push(version)
@@ -455,8 +440,8 @@ class RGSTreeItem extends vscode.TreeItem {
   pluginInfo?: PluginInfo
 
   constructor(
-    public label: string,
-    public collapsibleState: vscode.TreeItemCollapsibleState,
+    override label: string,
+    override collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly itemType: string
   ) {
     super(label, collapsibleState)
@@ -498,13 +483,11 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
     if (!element) {
       const items: RGSTreeItem[] = []
 
-      // Filter stores based on configuration
       const projectStores = this.analysis.stores.filter(s => s.category === 'project')
       const testStores = this.config.showTestStores
         ? this.analysis.stores.filter(s => s.category === 'test')
         : []
 
-      // Project Stores
       if (projectStores.length > 0) {
         const storesFolder = new RGSTreeItem(
           '📁 Project Stores (' + projectStores.length + ')',
@@ -525,7 +508,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
         items.push(storesFolder)
       }
 
-      // Test Stores (if enabled)
       if (testStores.length > 0) {
         const testFolder = new RGSTreeItem(
           '🧪 Test Stores (' + testStores.length + ')',
@@ -539,7 +521,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
             'store-test'
           )
           item.storeInfo = store
-          // Show test framework in description
           const frameworkLabel = store.testFramework === 'jest' ? 'Jest' : store.testFramework === 'playwright' ? 'Playwright' : ''
           item.description = store.type + (frameworkLabel ? ` | ${frameworkLabel}` : '')
           if (store.testFile) {
@@ -551,7 +532,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
         items.push(testFolder)
       }
 
-      // Violations
       if (this.analysis.violations.length > 0) {
         const violationsFolder = new RGSTreeItem(
           '⚠️ Issues (' + this.analysis.violations.length + ')',
@@ -578,7 +558,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
       const children: RGSTreeItem[] = []
       const store = element.storeInfo
 
-      // Store Details Section
       const detailsFolder = new RGSTreeItem(
         '📋 Details',
         vscode.TreeItemCollapsibleState.Expanded,
@@ -587,15 +566,12 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
 
       const detailsChildren: RGSTreeItem[] = []
 
-      // Name
       const nameItem = new RGSTreeItem(`Name: ${store.name}`, vscode.TreeItemCollapsibleState.None, 'detail')
       detailsChildren.push(nameItem)
 
-      // Type
       const typeItem = new RGSTreeItem(`Type: ${store.type}`, vscode.TreeItemCollapsibleState.None, 'detail')
       detailsChildren.push(typeItem)
 
-      // Test Framework (if applicable)
       if (store.category === 'test' && store.testFramework) {
         const frameworkLabel = store.testFramework === 'jest' ? 'Jest' : 'Playwright'
         const testFwItem = new RGSTreeItem(`Test Framework: ${frameworkLabel}`, vscode.TreeItemCollapsibleState.None, 'detail')
@@ -607,7 +583,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
         }
       }
 
-      // Plugins
       if (store.plugins.length > 0) {
         const pluginsItem = new RGSTreeItem(
           `Plugins (${store.plugins.length})`,
@@ -620,7 +595,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
         detailsChildren.push(pluginsItem)
       }
 
-      // Security
       const securityItems: string[] = []
       if (store.security.encoded) securityItems.push('Encoded')
       if (store.security.rbac) securityItems.push('RBAC')
@@ -641,7 +615,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
       detailsFolder.children = detailsChildren
       children.push(detailsFolder)
 
-      // Keys
       if (store.keys.length > 0) {
         const keysItem = new RGSTreeItem(
           'Keys (' + store.keys.length + ')',
@@ -654,7 +627,6 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
         children.push(keysItem)
       }
 
-      // File location
       const locationItem = new RGSTreeItem(
         '📁 ' + store.filePath + ':' + store.line,
         vscode.TreeItemCollapsibleState.None,
@@ -686,50 +658,42 @@ class WorkspaceAnalyzer {
       try {
         const content = fs.readFileSync(filePath, 'utf-8')
 
-        // Determine store category based on file path
         const isTestFile = filePath.includes('/tests/') || filePath.includes('\\tests\\')
         const isJestTest = filePath.includes('/tests/jest/') || filePath.includes('\\tests\\jest\\')
         const isPlaywrightTest = filePath.includes('/tests/playwright/') || filePath.includes('\\tests\\playwright\\')
 
-        // Determine test framework
         let testFramework: 'jest' | 'playwright' | undefined = undefined
         if (isJestTest) testFramework = 'jest'
         else if (isPlaywrightTest) testFramework = 'playwright'
 
-        // Find store creations
         const storePattern = /(?:const|let|var)\s+(\w+)\s*=\s*(createStore|initState)\s*[<(]/g
         let match: RegExpExecArray | null
         while ((match = storePattern.exec(content)) !== null) {
           const varName = match[1]
           const funcType = match[2]
-          const lineNumber = content.substring(0, match.index).split('\n').length
+          if (varName && funcType) {
+            const lineNumber = content.substring(0, match.index).split('\n').length
+            const security = this.extractSecurityInfo(content, match.index)
+            const storePlugins = this.extractPluginsForStore(content)
+            const stateProperties = this.extractStateProperties(content, match.index, filePath)
 
-          // Extract store configuration for security details
-          const security = this.extractSecurityInfo(content, match.index)
-
-          // Extract plugins used in this store
-          const storePlugins = this.extractPluginsForStore(content, varName)
-
-          // Extract state properties from initial state config
-          const stateProperties = this.extractStateProperties(content, match.index, filePath)
-
-          stores.push({
-            name: varName,
-            filePath,
-            line: lineNumber,
-            type: funcType,
-            config: {},
-            keys: [],
-            plugins: storePlugins,
-            category: isTestFile ? 'test' : 'project',
-            testFramework,
-            testFile: isTestFile ? this.findTestFileName(filePath) : undefined,
-            security,
-            stateProperties
-          })
+            stores.push({
+              name: varName,
+              filePath: filePath,
+              line: lineNumber,
+              type: funcType,
+              config: {},
+              keys: [],
+              plugins: storePlugins,
+              category: isTestFile ? 'test' : 'project',
+              testFramework,
+              testFile: isTestFile ? this.findTestFileName(filePath) : undefined,
+              security,
+              stateProperties
+            })
+          }
         }
 
-        // Find state usages
         const statePattern = /useStore\s*\(\s*['"`]([^'"`]+)['"`]/g
         while ((match = statePattern.exec(content)) !== null) {
           const key = match[1]
@@ -739,7 +703,6 @@ class WorkspaceAnalyzer {
           }
         }
 
-        // useSyncedState
         const syncedPattern = /useSyncedState\s*\(\s*['"`]([^'"`]+)['"`]/g
         while ((match = syncedPattern.exec(content)) !== null) {
           const key = match[1]
@@ -749,14 +712,14 @@ class WorkspaceAnalyzer {
           }
         }
 
-        // Find plugins
         const pluginPattern = /_addPlugin\s*\(\s*['"`]([^'"`]+)['"`]/g
         while ((match = pluginPattern.exec(content)) !== null) {
-          const lineNumber = content.substring(0, match.index).split('\n').length
-          plugins.push({ name: match[1], filePath, line: lineNumber })
+          if (match[1]) {
+            const lineNumber = content.substring(0, match.index).split('\n').length
+            plugins.push({ name: match[1], filePath, line: lineNumber })
+          }
         }
 
-        // Check violations
         const insecureKeys = ['__proto__', 'constructor', 'prototype']
         for (const key of insecureKeys) {
           const pattern = new RegExp('set\\s*\\(\\s*[\'"`]' + key + '[\'"`]')
@@ -783,28 +746,27 @@ class WorkspaceAnalyzer {
   }
 
   private extractSecurityInfo(content: string, storeStartIndex: number): { encoded: boolean; rbac: boolean; namespace?: string } {
-    // Look for security-related config in the store creation
     const searchRange = content.substring(storeStartIndex, storeStartIndex + 2000)
 
     const encoded = /encoded:\s*true/.test(searchRange) || /encode:\s*true/.test(searchRange)
     const rbac = /rbac:\s*true/.test(searchRange) || /rbacEnabled:\s*true/.test(searchRange)
 
-    // Extract namespace
     const namespaceMatch = searchRange.match(/namespace:\s*['"`]([^'"`]+)['"`]/)
     const namespace = namespaceMatch ? namespaceMatch[1] : undefined
 
     return { encoded, rbac, namespace }
   }
 
-  private extractPluginsForStore(content: string, storeName: string): string[] {
+  private extractPluginsForStore(content: string): string[] {
     const plugins: string[] = []
 
-    // Find _addPlugin calls after store creation
     const pluginPattern = /_addPlugin\s*\(\s*['"`]([^'"`]+)['"`]/g
     let match: RegExpExecArray | null
 
     while ((match = pluginPattern.exec(content)) !== null) {
-      plugins.push(match[1])
+      if (match[1]) {
+        plugins.push(match[1])
+      }
     }
 
     return plugins
@@ -813,35 +775,26 @@ class WorkspaceAnalyzer {
   private extractStateProperties(content: string, storeStartIndex: number, filePath: string): StatePropertyInfo[] {
     const properties: StatePropertyInfo[] = []
 
-    // Find the store configuration object after createStore or initState
     const searchRange = content.substring(storeStartIndex, storeStartIndex + 3000)
 
-    // Look for state property definitions like:
-    // state: { key: value } or state: { key: type }
-    // We'll extract keys and their initial values
-
-    // Match state: { ... } pattern
     const stateMatch = searchRange.match(/state:\s*\{([^}]+)\}/s)
-    if (!stateMatch) return properties
+    if (!stateMatch || !stateMatch[1]) return properties
 
     const stateContent = stateMatch[1]
     const lines = stateContent.split('\n')
 
     for (const line of lines) {
-      // Match key: value patterns
       const propMatch = line.match(/^\s*(\w+)\s*:\s*(.+?),?\s*$/)
-      if (propMatch) {
+      if (propMatch && propMatch[1]) {
         const key = propMatch[1]
-        const value = propMatch[2].trim()
+        const value = propMatch[2]?.trim() ?? ''
 
-        // Detect type from value
         let type = 'unknown'
         let defaultValue = value
         let isPersisted = false
         let isEncrypted = false
         let isReadonly = false
 
-        // Check for persist options after the value (may be on same or next line)
         const persistMatch = line.match(/persist:\s*true/)
         if (persistMatch) isPersisted = true
 
@@ -851,7 +804,6 @@ class WorkspaceAnalyzer {
         const readonlyMatch = line.match(/readonly:\s*true/)
         if (readonlyMatch) isReadonly = true
 
-        // Infer type from value
         if (value === 'null' || value === 'undefined') {
           type = 'null'
         } else if (value === 'true' || value === 'false') {
@@ -868,9 +820,8 @@ class WorkspaceAnalyzer {
           type = 'class'
         }
 
-        // Find line number in original content
         const keyIndex = content.indexOf(key, storeStartIndex)
-        const lineNumber = keyIndex > 0 ? content.substring(0, keyIndex).split('\n').length : 1
+        const lineNumber = keyIndex >= 0 ? content.substring(0, keyIndex).split('\n').length : 1
 
         properties.push({
           key,
@@ -889,11 +840,10 @@ class WorkspaceAnalyzer {
   }
 
   private findTestFileName(filePath: string): string {
-    // Extract the test file name from the path
     const parts = filePath.split(/[/\\]/)
     const testsIndex = parts.findIndex(p => p === 'tests')
     if (testsIndex >= 0 && testsIndex < parts.length - 1) {
-      return parts[parts.length - 1]
+      return parts[parts.length - 1] ?? path.basename(filePath)
     }
     return path.basename(filePath)
   }
@@ -938,14 +888,12 @@ export function activate(context: vscode.ExtensionContext): void {
   const welcomeProvider = new RGSWelcomeProvider()
   const statePropertiesProvider = new RGSStatePropertiesProvider()
 
-  // Listen for configuration changes
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(() => {
       treeProvider.refreshConfig()
     })
   )
 
-  // Create views lazily only when needed
   let welcomeView: vscode.TreeView<vscode.TreeItem> | undefined
   let treeView: vscode.TreeView<RGSTreeItem> | undefined
   let statePropertiesView: vscode.TreeView<StatePropertyTreeItem> | undefined
@@ -969,17 +917,18 @@ export function activate(context: vscode.ExtensionContext): void {
       })
       context.subscriptions.push(treeView)
 
-      // Auto-analyze on first view open
       if (!treeProvider.analysis && vscode.workspace.workspaceFolders?.length) {
         try {
-          const analysis = await analyzer.analyze(vscode.workspace.workspaceFolders[0])
-          treeProvider.setAnalysis(analysis)
+          const folder = vscode.workspace.workspaceFolders[0]
+          if (folder) {
+            const analysis = await analyzer.analyze(folder)
+            treeProvider.setAnalysis(analysis)
+          }
         } catch (e) {
           console.error('Auto-analysis failed:', e)
         }
       }
 
-      // Handle selection
       treeView.onDidChangeSelection(async (e) => {
         const selected = e.selection[0]
         if (!selected) return
@@ -1004,10 +953,8 @@ export function activate(context: vscode.ExtensionContext): void {
           }
         }
 
-        // Update State Properties view when store is selected
         if (selected.storeInfo) {
           statePropertiesProvider.setStore(selected.storeInfo)
-          // Ensure the State Properties view is visible
           getStatePropertiesView()
         }
       })
@@ -1026,7 +973,6 @@ export function activate(context: vscode.ExtensionContext): void {
     return statePropertiesView
   }
 
-  // Register commands
   context.subscriptions.push(
     vscode.commands.registerCommand('rgs.welcome', () => {
       getWelcomeView()
@@ -1044,10 +990,15 @@ export function activate(context: vscode.ExtensionContext): void {
       vscode.window.showInformationMessage('Analyzing workspace...')
 
       try {
-        const analysis = await analyzer.analyze(workspaceFolders[0])
+        const folder = workspaceFolders[0]
+        if (!folder) {
+          vscode.window.showWarningMessage('No workspace folder found')
+          return
+        }
+
+        const analysis = await analyzer.analyze(folder)
         treeProvider.setAnalysis(analysis)
 
-        // Show tree view
         await getTreeView()
 
         const storeCount = analysis.stores.length
@@ -1110,7 +1061,6 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   )
 
-  // Register go to property definition command
   context.subscriptions.push(
     vscode.commands.registerCommand('rgs.goToPropertyDefinition', async (property: StatePropertyInfo) => {
       if (!property) {
@@ -1130,7 +1080,6 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   )
 
-  // Register completion provider
   if (config.enableAutocomplete) {
     const completionProvider = vscode.languages.registerCompletionItemProvider(
       ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
@@ -1166,7 +1115,6 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(completionProvider)
   }
 
-  // Register hover provider
   if (config.enableHover) {
     const hoverProvider = vscode.languages.registerHoverProvider(
       ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
@@ -1202,7 +1150,6 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(hoverProvider)
   }
 
-  // Register diagnostics
   if (config.enableDiagnostics) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('rgs')
 
@@ -1256,7 +1203,6 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   }
 
-  // Register Go to Definition
   const definitionProvider = vscode.languages.registerDefinitionProvider(
     ['typescript', 'typescriptreact', 'javascript', 'javascriptreact'],
     {
@@ -1274,6 +1220,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i]
+          if (!line) continue
           const match = line.match(/(?:const|let|var)\s+(\w+)\s*=\s*(createStore|initState)/)
           if (match && match[1] === word) {
             const startPos = new vscode.Position(i, 0)
@@ -1288,7 +1235,6 @@ export function activate(context: vscode.ExtensionContext): void {
   )
   context.subscriptions.push(definitionProvider)
 
-  // Register RGS decorator
   const rgsDecoration = vscode.window.createTextEditorDecorationType({
     light: { color: '#0078d4', fontWeight: 'bold' },
     dark: { color: '#4fc1ff', fontWeight: 'bold' },
