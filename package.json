@@ -1,6 +1,6 @@
 {
   "name": "argis",
-  "version": "3.8.4",
+  "version": "3.9.0",
   "description": "Argis (RGS) - Reactive Global State: A react state everywhere made easy",
   "main": "./index.js",
   "browser": "./index.cjs",
@@ -68,7 +68,7 @@
     "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
     "watch": "tsup --watch",
     "npm:pack": "npm run build && cd dist && npm pack",
-    "npm:publish": "npm run build && npm publish ./dist --access public",
+    "npm:publish": "cd .dev/shell && sh publish.sh",
     "dev": "npm run generate-imports && node esbuild.config.mjs --watch-and-serve",
     "test": "cd tests && npm run test",
     "lint": "cd tests && npm run lint",
@@ -77,7 +77,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
-    "@types/node": "^25.3.3",
+    "@types/node": "^25.3.5",
     "@types/react": "19.2.14",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-sass-plugin": "3.6.0",
