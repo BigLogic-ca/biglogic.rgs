@@ -1,6 +1,25 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
+const charMap: Record<string, string> = {
+  '<': '\\u003C',
+  '>': '\\u003E',
+  '/': '\\u002F',
+  '\\': '\\\\',
+  '\b': '\\b',
+  '\f': '\\f',
+  '\n': '\\n',
+  '\r': '\\r',
+  '\t': '\\t',
+  '\0': '\\0',
+  '\u2028': '\\u2028',
+  '\u2029': '\\u2029'
+}
+
+function escapeUnsafeChars(str: string): string {
+  return str.replace(/[<>/\\\b\f\n\r\t\0\u2028\u2029]/g, (x) => charMap[x] || x)
+}
+
 // Custom plugin to inject CSS into JS bundle
 const injectCss = {
   name: 'inject-css',
@@ -25,7 +44,7 @@ const injectCss = {
         cjsContent = fs.readFileSync(cjsPath, 'utf-8')
 
       // Inject CSS into JS
-      const injectCode = `;(()=>{const s=document.createElement("style");s.textContent=${JSON.stringify(cssContent)};document.head.appendChild(s)})();`
+      const injectCode = `;(()=>{const s=document.createElement("style");s.textContent=${escapeUnsafeChars(JSON.stringify(cssContent))};document.head.appendChild(s)})();`
 
       // For ESM - inject at the beginning
       const newJsContent = injectCode + jsContent
