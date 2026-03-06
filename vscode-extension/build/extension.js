@@ -244,17 +244,13 @@ class RGSStatePropertiesProvider {
             return items;
         }
         if (element) {
-            // Show property details when expanded
             if (element.propertyInfo) {
                 const props = element.propertyInfo;
                 const children = [];
-                // Type
                 const typeItem = new StatePropertyTreeItem(`Type: ${props.type}`, vscode.TreeItemCollapsibleState.None, 'detail');
                 children.push(typeItem);
-                // Default value
                 const defaultItem = new StatePropertyTreeItem(`Default: ${props.defaultValue}`, vscode.TreeItemCollapsibleState.None, 'detail');
                 children.push(defaultItem);
-                // Attributes
                 const attrs = [];
                 if (props.isPersisted)
                     attrs.push('Persisted');
@@ -270,19 +266,15 @@ class RGSStatePropertiesProvider {
             }
             return [];
         }
-        // Root level - show store name and properties
         const items = [];
-        // Store header
         const header = new StatePropertyTreeItem(`Store: ${this.currentStore.name}`, vscode.TreeItemCollapsibleState.None, 'header');
         header.description = `${this.currentStore.stateProperties.length} properties`;
         items.push(header);
-        // Properties
         if (this.currentStore.stateProperties.length > 0) {
             for (const prop of this.currentStore.stateProperties) {
                 const propItem = new StatePropertyTreeItem(prop.key, vscode.TreeItemCollapsibleState.Collapsed, 'property');
                 propItem.propertyInfo = prop;
                 propItem.description = prop.type;
-                // Add icons based on attributes
                 let icon = '';
                 if (prop.isEncrypted)
                     icon += '🔒 ';
@@ -292,7 +284,6 @@ class RGSStatePropertiesProvider {
                     icon += '📖 ';
                 if (icon)
                     propItem.label = icon + prop.key;
-                // Make clickable to go to definition
                 propItem.command = {
                     command: 'rgs.goToPropertyDefinition',
                     title: 'Go to Property Definition',
@@ -322,20 +313,16 @@ class RGSWelcomeProvider {
     }
     getChildren() {
         const items = [];
-        // Header
         const header = new vscode.TreeItem('⚡ RGS (Argis)', vscode.TreeItemCollapsibleState.None);
         header.contextValue = 'header';
         items.push(header);
-        // Info
         const info = new vscode.TreeItem('State Management for React', vscode.TreeItemCollapsibleState.None);
         info.contextValue = 'info';
         items.push(info);
-        // Action
         const analyzeAction = new vscode.TreeItem('📊 Analyze Workspace', vscode.TreeItemCollapsibleState.None);
         analyzeAction.command = { command: 'rgs.analyzeWorkspace', title: 'Analyze Workspace' };
         analyzeAction.contextValue = 'action';
         items.push(analyzeAction);
-        // Version
         const version = new vscode.TreeItem('v3.8.2 | MIT License', vscode.TreeItemCollapsibleState.None);
         version.contextValue = 'footer';
         items.push(version);
@@ -383,12 +370,10 @@ class RGSStateExplorerProvider {
         }
         if (!element) {
             const items = [];
-            // Filter stores based on configuration
             const projectStores = this.analysis.stores.filter(s => s.category === 'project');
             const testStores = this.config.showTestStores
                 ? this.analysis.stores.filter(s => s.category === 'test')
                 : [];
-            // Project Stores
             if (projectStores.length > 0) {
                 const storesFolder = new RGSTreeItem('📁 Project Stores (' + projectStores.length + ')', vscode.TreeItemCollapsibleState.Expanded, 'folder-project');
                 storesFolder.children = projectStores.map(store => {
@@ -400,13 +385,11 @@ class RGSStateExplorerProvider {
                 });
                 items.push(storesFolder);
             }
-            // Test Stores (if enabled)
             if (testStores.length > 0) {
                 const testFolder = new RGSTreeItem('🧪 Test Stores (' + testStores.length + ')', vscode.TreeItemCollapsibleState.Expanded, 'folder-test');
                 testFolder.children = testStores.map(store => {
                     const item = new RGSTreeItem(store.name, vscode.TreeItemCollapsibleState.Collapsed, 'store-test');
                     item.storeInfo = store;
-                    // Show test framework in description
                     const frameworkLabel = store.testFramework === 'jest' ? 'Jest' : store.testFramework === 'playwright' ? 'Playwright' : '';
                     item.description = store.type + (frameworkLabel ? ` | ${frameworkLabel}` : '');
                     if (store.testFile) {
@@ -417,7 +400,6 @@ class RGSStateExplorerProvider {
                 });
                 items.push(testFolder);
             }
-            // Violations
             if (this.analysis.violations.length > 0) {
                 const violationsFolder = new RGSTreeItem('⚠️ Issues (' + this.analysis.violations.length + ')', vscode.TreeItemCollapsibleState.Expanded, 'folder');
                 violationsFolder.children = this.analysis.violations.map(v => {
@@ -433,16 +415,12 @@ class RGSStateExplorerProvider {
         if ((element.itemType === 'store' || element.itemType === 'store-test') && element.storeInfo) {
             const children = [];
             const store = element.storeInfo;
-            // Store Details Section
             const detailsFolder = new RGSTreeItem('📋 Details', vscode.TreeItemCollapsibleState.Expanded, 'folder-details');
             const detailsChildren = [];
-            // Name
             const nameItem = new RGSTreeItem(`Name: ${store.name}`, vscode.TreeItemCollapsibleState.None, 'detail');
             detailsChildren.push(nameItem);
-            // Type
             const typeItem = new RGSTreeItem(`Type: ${store.type}`, vscode.TreeItemCollapsibleState.None, 'detail');
             detailsChildren.push(typeItem);
-            // Test Framework (if applicable)
             if (store.category === 'test' && store.testFramework) {
                 const frameworkLabel = store.testFramework === 'jest' ? 'Jest' : 'Playwright';
                 const testFwItem = new RGSTreeItem(`Test Framework: ${frameworkLabel}`, vscode.TreeItemCollapsibleState.None, 'detail');
@@ -452,13 +430,11 @@ class RGSStateExplorerProvider {
                     detailsChildren.push(testFileItem);
                 }
             }
-            // Plugins
             if (store.plugins.length > 0) {
                 const pluginsItem = new RGSTreeItem(`Plugins (${store.plugins.length})`, vscode.TreeItemCollapsibleState.Expanded, 'folder');
                 pluginsItem.children = store.plugins.map(p => new RGSTreeItem(p, vscode.TreeItemCollapsibleState.None, 'plugin'));
                 detailsChildren.push(pluginsItem);
             }
-            // Security
             const securityItems = [];
             if (store.security.encoded)
                 securityItems.push('Encoded');
@@ -473,13 +449,11 @@ class RGSStateExplorerProvider {
             }
             detailsFolder.children = detailsChildren;
             children.push(detailsFolder);
-            // Keys
             if (store.keys.length > 0) {
                 const keysItem = new RGSTreeItem('Keys (' + store.keys.length + ')', vscode.TreeItemCollapsibleState.Expanded, 'folder');
                 keysItem.children = store.keys.map(key => new RGSTreeItem(key, vscode.TreeItemCollapsibleState.None, 'key'));
                 children.push(keysItem);
             }
-            // File location
             const locationItem = new RGSTreeItem('📁 ' + store.filePath + ':' + store.line, vscode.TreeItemCollapsibleState.None, 'location');
             children.push(locationItem);
             return children;
@@ -500,45 +474,40 @@ class WorkspaceAnalyzer {
         for (const filePath of files) {
             try {
                 const content = fs.readFileSync(filePath, 'utf-8');
-                // Determine store category based on file path
                 const isTestFile = filePath.includes('/tests/') || filePath.includes('\\tests\\');
                 const isJestTest = filePath.includes('/tests/jest/') || filePath.includes('\\tests\\jest\\');
                 const isPlaywrightTest = filePath.includes('/tests/playwright/') || filePath.includes('\\tests\\playwright\\');
-                // Determine test framework
                 let testFramework = undefined;
                 if (isJestTest)
                     testFramework = 'jest';
                 else if (isPlaywrightTest)
                     testFramework = 'playwright';
-                // Find store creations
                 const storePattern = /(?:const|let|var)\s+(\w+)\s*=\s*(createStore|initState)\s*[<(]/g;
                 let match;
                 while ((match = storePattern.exec(content)) !== null) {
                     const varName = match[1];
                     const funcType = match[2];
-                    const lineNumber = content.substring(0, match.index).split('\n').length;
-                    // Extract store configuration for security details
-                    const security = this.extractSecurityInfo(content, match.index);
-                    // Extract plugins used in this store
-                    const storePlugins = this.extractPluginsForStore(content, varName);
-                    // Extract state properties from initial state config
-                    const stateProperties = this.extractStateProperties(content, match.index, filePath);
-                    stores.push({
-                        name: varName,
-                        filePath,
-                        line: lineNumber,
-                        type: funcType,
-                        config: {},
-                        keys: [],
-                        plugins: storePlugins,
-                        category: isTestFile ? 'test' : 'project',
-                        testFramework,
-                        testFile: isTestFile ? this.findTestFileName(filePath) : undefined,
-                        security,
-                        stateProperties
-                    });
+                    if (varName && funcType) {
+                        const lineNumber = content.substring(0, match.index).split('\n').length;
+                        const security = this.extractSecurityInfo(content, match.index);
+                        const storePlugins = this.extractPluginsForStore(content);
+                        const stateProperties = this.extractStateProperties(content, match.index, filePath);
+                        stores.push({
+                            name: varName,
+                            filePath: filePath,
+                            line: lineNumber,
+                            type: funcType,
+                            config: {},
+                            keys: [],
+                            plugins: storePlugins,
+                            category: isTestFile ? 'test' : 'project',
+                            testFramework,
+                            testFile: isTestFile ? this.findTestFileName(filePath) : undefined,
+                            security,
+                            stateProperties
+                        });
+                    }
                 }
-                // Find state usages
                 const statePattern = /useStore\s*\(\s*['"`]([^'"`]+)['"`]/g;
                 while ((match = statePattern.exec(content)) !== null) {
                     const key = match[1];
@@ -547,7 +516,6 @@ class WorkspaceAnalyzer {
                         states.push({ key, filePath, line: lineNumber, type: 'useStore' });
                     }
                 }
-                // useSyncedState
                 const syncedPattern = /useSyncedState\s*\(\s*['"`]([^'"`]+)['"`]/g;
                 while ((match = syncedPattern.exec(content)) !== null) {
                     const key = match[1];
@@ -556,13 +524,13 @@ class WorkspaceAnalyzer {
                         states.push({ key, filePath, line: lineNumber, type: 'useSyncedState' });
                     }
                 }
-                // Find plugins
                 const pluginPattern = /_addPlugin\s*\(\s*['"`]([^'"`]+)['"`]/g;
                 while ((match = pluginPattern.exec(content)) !== null) {
-                    const lineNumber = content.substring(0, match.index).split('\n').length;
-                    plugins.push({ name: match[1], filePath, line: lineNumber });
+                    if (match[1]) {
+                        const lineNumber = content.substring(0, match.index).split('\n').length;
+                        plugins.push({ name: match[1], filePath, line: lineNumber });
+                    }
                 }
-                // Check violations
                 const insecureKeys = ['__proto__', 'constructor', 'prototype'];
                 for (const key of insecureKeys) {
                     const pattern = new RegExp('set\\s*\\(\\s*[\'"`]' + key + '[\'"`]');
@@ -587,51 +555,42 @@ class WorkspaceAnalyzer {
         return { stores, states, plugins, violations, timestamp: new Date() };
     }
     extractSecurityInfo(content, storeStartIndex) {
-        // Look for security-related config in the store creation
         const searchRange = content.substring(storeStartIndex, storeStartIndex + 2000);
         const encoded = /encoded:\s*true/.test(searchRange) || /encode:\s*true/.test(searchRange);
         const rbac = /rbac:\s*true/.test(searchRange) || /rbacEnabled:\s*true/.test(searchRange);
-        // Extract namespace
         const namespaceMatch = searchRange.match(/namespace:\s*['"`]([^'"`]+)['"`]/);
         const namespace = namespaceMatch ? namespaceMatch[1] : undefined;
         return { encoded, rbac, namespace };
     }
-    extractPluginsForStore(content, storeName) {
+    extractPluginsForStore(content) {
         const plugins = [];
-        // Find _addPlugin calls after store creation
         const pluginPattern = /_addPlugin\s*\(\s*['"`]([^'"`]+)['"`]/g;
         let match;
         while ((match = pluginPattern.exec(content)) !== null) {
-            plugins.push(match[1]);
+            if (match[1]) {
+                plugins.push(match[1]);
+            }
         }
         return plugins;
     }
     extractStateProperties(content, storeStartIndex, filePath) {
         const properties = [];
-        // Find the store configuration object after createStore or initState
         const searchRange = content.substring(storeStartIndex, storeStartIndex + 3000);
-        // Look for state property definitions like:
-        // state: { key: value } or state: { key: type }
-        // We'll extract keys and their initial values
-        // Match state: { ... } pattern
         const stateMatch = searchRange.match(/state:\s*\{([^}]+)\}/s);
-        if (!stateMatch)
+        if (!stateMatch || !stateMatch[1])
             return properties;
         const stateContent = stateMatch[1];
         const lines = stateContent.split('\n');
         for (const line of lines) {
-            // Match key: value patterns
             const propMatch = line.match(/^\s*(\w+)\s*:\s*(.+?),?\s*$/);
-            if (propMatch) {
+            if (propMatch && propMatch[1]) {
                 const key = propMatch[1];
-                const value = propMatch[2].trim();
-                // Detect type from value
+                const value = propMatch[2]?.trim() ?? '';
                 let type = 'unknown';
                 let defaultValue = value;
                 let isPersisted = false;
                 let isEncrypted = false;
                 let isReadonly = false;
-                // Check for persist options after the value (may be on same or next line)
                 const persistMatch = line.match(/persist:\s*true/);
                 if (persistMatch)
                     isPersisted = true;
@@ -641,7 +600,6 @@ class WorkspaceAnalyzer {
                 const readonlyMatch = line.match(/readonly:\s*true/);
                 if (readonlyMatch)
                     isReadonly = true;
-                // Infer type from value
                 if (value === 'null' || value === 'undefined') {
                     type = 'null';
                 }
@@ -663,9 +621,8 @@ class WorkspaceAnalyzer {
                 else if (/^[A-Z]/.test(value) && !value.includes(' ')) {
                     type = 'class';
                 }
-                // Find line number in original content
                 const keyIndex = content.indexOf(key, storeStartIndex);
-                const lineNumber = keyIndex > 0 ? content.substring(0, keyIndex).split('\n').length : 1;
+                const lineNumber = keyIndex >= 0 ? content.substring(0, keyIndex).split('\n').length : 1;
                 properties.push({
                     key,
                     type,
@@ -681,11 +638,10 @@ class WorkspaceAnalyzer {
         return properties;
     }
     findTestFileName(filePath) {
-        // Extract the test file name from the path
         const parts = filePath.split(/[/\\]/);
         const testsIndex = parts.findIndex(p => p === 'tests');
         if (testsIndex >= 0 && testsIndex < parts.length - 1) {
-            return parts[parts.length - 1];
+            return parts[parts.length - 1] ?? path.basename(filePath);
         }
         return path.basename(filePath);
     }
@@ -724,11 +680,9 @@ function activate(context) {
     const treeProvider = new RGSStateExplorerProvider();
     const welcomeProvider = new RGSWelcomeProvider();
     const statePropertiesProvider = new RGSStatePropertiesProvider();
-    // Listen for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
         treeProvider.refreshConfig();
     }));
-    // Create views lazily only when needed
     let welcomeView;
     let treeView;
     let statePropertiesView;
@@ -749,17 +703,18 @@ function activate(context) {
                 showCollapseAll: true
             });
             context.subscriptions.push(treeView);
-            // Auto-analyze on first view open
             if (!treeProvider.analysis && vscode.workspace.workspaceFolders?.length) {
                 try {
-                    const analysis = await analyzer.analyze(vscode.workspace.workspaceFolders[0]);
-                    treeProvider.setAnalysis(analysis);
+                    const folder = vscode.workspace.workspaceFolders[0];
+                    if (folder) {
+                        const analysis = await analyzer.analyze(folder);
+                        treeProvider.setAnalysis(analysis);
+                    }
                 }
                 catch (e) {
                     console.error('Auto-analysis failed:', e);
                 }
             }
-            // Handle selection
             treeView.onDidChangeSelection(async (e) => {
                 const selected = e.selection[0];
                 if (!selected)
@@ -782,10 +737,8 @@ function activate(context) {
                         editor.revealRange(new vscode.Range(pos, pos));
                     }
                 }
-                // Update State Properties view when store is selected
                 if (selected.storeInfo) {
                     statePropertiesProvider.setStore(selected.storeInfo);
-                    // Ensure the State Properties view is visible
                     getStatePropertiesView();
                 }
             });
@@ -802,7 +755,6 @@ function activate(context) {
         }
         return statePropertiesView;
     };
-    // Register commands
     context.subscriptions.push(vscode.commands.registerCommand('rgs.welcome', () => {
         getWelcomeView();
     }));
@@ -814,9 +766,13 @@ function activate(context) {
         }
         vscode.window.showInformationMessage('Analyzing workspace...');
         try {
-            const analysis = await analyzer.analyze(workspaceFolders[0]);
+            const folder = workspaceFolders[0];
+            if (!folder) {
+                vscode.window.showWarningMessage('No workspace folder found');
+                return;
+            }
+            const analysis = await analyzer.analyze(folder);
             treeProvider.setAnalysis(analysis);
-            // Show tree view
             await getTreeView();
             const storeCount = analysis.stores.length;
             const issueCount = analysis.violations.length;
@@ -862,7 +818,6 @@ function activate(context) {
         editor.selection = new vscode.Selection(pos, pos);
         editor.revealRange(new vscode.Range(pos, pos));
     }));
-    // Register go to property definition command
     context.subscriptions.push(vscode.commands.registerCommand('rgs.goToPropertyDefinition', async (property) => {
         if (!property) {
             vscode.window.showInformationMessage('No property selected');
@@ -879,7 +834,6 @@ function activate(context) {
             vscode.window.showErrorMessage('Failed to open file: ' + property.filePath);
         }
     }));
-    // Register completion provider
     if (config.enableAutocomplete) {
         const completionProvider = vscode.languages.registerCompletionItemProvider(['typescript', 'typescriptreact', 'javascript', 'javascriptreact'], {
             provideCompletionItems(document, position, _token, _context) {
@@ -902,7 +856,6 @@ function activate(context) {
         }, ...['.', '(', ',']);
         context.subscriptions.push(completionProvider);
     }
-    // Register hover provider
     if (config.enableHover) {
         const hoverProvider = vscode.languages.registerHoverProvider(['typescript', 'typescriptreact', 'javascript', 'javascriptreact'], {
             provideHover(document, position, _token) {
@@ -926,7 +879,6 @@ function activate(context) {
         });
         context.subscriptions.push(hoverProvider);
     }
-    // Register diagnostics
     if (config.enableDiagnostics) {
         const diagnosticCollection = vscode.languages.createDiagnosticCollection('rgs');
         const runDiagnostics = (document) => {
@@ -961,7 +913,6 @@ function activate(context) {
             runDiagnostics(document);
         }));
     }
-    // Register Go to Definition
     const definitionProvider = vscode.languages.registerDefinitionProvider(['typescript', 'typescriptreact', 'javascript', 'javascriptreact'], {
         provideDefinition(document, position, _token) {
             const wordRange = document.getWordRangeAtPosition(position);
@@ -972,6 +923,8 @@ function activate(context) {
             const lines = text.split('\n');
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
+                if (!line)
+                    continue;
                 const match = line.match(/(?:const|let|var)\s+(\w+)\s*=\s*(createStore|initState)/);
                 if (match && match[1] === word) {
                     const startPos = new vscode.Position(i, 0);
@@ -983,7 +936,6 @@ function activate(context) {
         },
     });
     context.subscriptions.push(definitionProvider);
-    // Register RGS decorator
     const rgsDecoration = vscode.window.createTextEditorDecorationType({
         light: { color: '#0078d4', fontWeight: 'bold' },
         dark: { color: '#4fc1ff', fontWeight: 'bold' },
