@@ -7,13 +7,12 @@ const copyStatic = {
   buildEnd() {
     const outdir = 'dist'
     const patterns = [
-      { from: 'README.md', to: 'README.md' },
       { from: '.github/COPYRIGHT.md', to: 'COPYRIGHT.md' },
       { from: '.github/LICENSE.md', to: 'LICENSE.md' },
-      { from: '.github/README.md', to: 'README.md' },
       { from: '.github/SECURITY.md', to: 'SECURITY.md' },
       { from: '.github/FUNDING.yml', to: 'FUNDING.yml' },
       { from: 'types/', to: 'types/' },
+      { from: 'docs/README.md', to: 'README.md' },
       { from: 'package.json', to: 'package.json' },
       // DOCS
       { from: 'README.md', to: 'docs/README.md' },
