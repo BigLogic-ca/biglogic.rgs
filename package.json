@@ -68,7 +68,7 @@
     "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
     "watch": "tsup --watch",
     "npm:pack": "npm run build && cd dist && npm pack",
-    "npm:publish": "cd .dev/shell && sh publish.sh",
+    "npm:publish": "npm run build && npm publish ./dist --access public",
     "dev": "npm run generate-imports && node esbuild.config.mjs --watch-and-serve",
     "test": "cd tests && npm run test",
     "lint": "cd tests && npm run lint",
