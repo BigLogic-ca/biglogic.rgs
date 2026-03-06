@@ -47,8 +47,7 @@
   ],
   "include": [
     "./**/*.ts",
-    "./**/*.tsx",
-    "vscode-extension/extension.js"
+    "./**/*.tsx"
   ],
   "exclude": [
     "node_modules",
