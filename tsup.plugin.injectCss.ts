@@ -4,24 +4,25 @@ import * as _path from 'node:path'
 import pk from './package.json'
 
 const charMap: Record<string, string> = {
-  '<': '\u003C',
-  '/': '\u002F',
-  '\\': '\\',
-  '\b': '\b',
-  '\f': '\f',
-  '\n': '\n',
-  '\r': '\r',
-  '\t': '\t',
-  '\0': '\0',
-  '\u2028': '\u2028',
-  '\u2029': '\u2029',
-  '\u203A': '\u203A',
-  '\uF0D7': '\uF0D7',
-  '\uF0DA': '\uF0DA',
+  '<': '\\u003C',
+  // '>': '\\u003E',
+  '/': '\\u002F',
+  '\\': '\\\\',
+  '\b': '\\b',
+  '\f': '\\f',
+  '\n': '\\n',
+  '\r': '\\r',
+  '\t': '\\t',
+  '\0': '\\0',
+  '\u2028': '\\u2028',
+  '\u2029': '\\u2029',
+  '\u203A': '\\u203A',
+  '\uF0D7': '\\uF0D7',
+  '\uF0DA': '\\uF0DA',
 }
 
 function escapeUnsafeChars(str: string): string {
-  return str.replace(/[<>/\\"\b\f\n\r\t\0\u2028\u2029]/g, (x) => charMap[x] || x)
+  return str.replace(/[<>/\\\b\f\n\r\t\0\u2028\u2029]/g, (x) => charMap[x] || x)
 }
 
 // Custom plugin to inject CSS into JS bundle
