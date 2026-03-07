@@ -1,40 +1,43 @@
-import { defineConfig, type Options } from 'tsup'
+import { defineConfig } from 'tsup'
 import { sassPlugin } from 'esbuild-sass-plugin'
+
+import { include, plug } from './tsup.setup'
+
 import copyStatic from './tsup.plugin.copyStatic'
+import injectCss from './tsup.plugin.injectCss'
+import types from './tsup.plugin.types'
+
 import pk from "./package.json"
+
+///
 
 export default defineConfig(
   {
-    plugins: [
-      copyStatic
-    ] as Options['plugins'],
+    //! minifyWhitespace: true,
+    //! minifyIdentifiers: true,
+    //! minifySyntax: true,
+    //! minify: true,
     globalName: pk.code,
     format: ['cjs', 'esm'],
-    entry: ['index.ts', 'core/minimal.ts', 'core/advanced.ts'],
-    platform: 'browser',
+    entry: ['index.ts'],
+    platform: "node",
     target: "es2024",
     outDir: 'dist',
-    keepNames: false,
-    skipNodeModulesBundle: true,
-    minifyWhitespace: true,
+    minify: 'terser',
     legacyOutput: false,
     injectStyle: true,
+    keepNames: false,
     splitting: false,
     sourcemap: false,
     treeshake: true,
-    minify: 'terser',
     bundle: true,
     clean: true,
     dts: false,
     external: [
-      // ...Object.keys(pk.dependencies),
       ...Object.keys(pk.devDependencies),
-      ...Object.keys(pk.peerDependencies),
-      ...Object.keys(pk.peerDependenciesMeta)
     ],
-    noExternal: [
-      "immer"
-    ],
+    //! noExternal: [],
+    //! inject: [],
     swc: {
       swcrc: true
     },
@@ -43,12 +46,21 @@ export default defineConfig(
     ],
     esbuildOptions(options) {
       options.legalComments = 'none'
-      // options.minify = true
+      //! options.minify = true
+      //! options.alias = {
+      //!   'react': require.resolve('react'),
+      //!   'react-dom': require.resolve('react-dom'),
+      //! }
     },
     terserOptions: {
+      mangle: true,
+      format: {
+        beautify: true,
+        comments: false
+      },
       compress: {
-        drop_console: true, // Removes console.log statements
-        drop_debugger: true // Removes debugger statements
+        drop_console: true,
+        drop_debugger: true
       }
     },
     loader: {
@@ -59,6 +71,9 @@ export default defineConfig(
       '.css': 'css'
     },
     async onSuccess() {
+      if (plug.copyStatic) await copyStatic(include)
+      if (plug.injectCss) await injectCss()
+      if (plug.types) await types()
       console.debug("Compilation: OK")
     }
   }
