@@ -51,7 +51,7 @@ const injectCss = () => {
       cjsContent = _fs.readFileSync(cjsPath, 'utf-8')
 
     // Inject CSS into JS
-    const injectCode = `;(()=>{const s=document.createElement("style");s.textContent=${JSON.stringify(escapeUnsafeChars(cssContent))};document.head.appendChild(s)})();`
+    const injectCode = `;(()=>{const s=document.createElement("style");s.textContent=${escapeUnsafeChars(JSON.stringify(cssContent))};document.head.appendChild(s)})();`
 
     // For ESM - inject at the beginning
     const newJsContent = injectCode + jsContent
