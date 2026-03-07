@@ -22,7 +22,7 @@ const charMap: Record<string, string> = {
 }
 
 function escapeUnsafeChars(str: string): string {
-  return str.replace(/[</\\\b\f\n\r\t\0\u2028\u2029]/g, (x) => charMap[x] || x)
+  return str.replace(/[</\\\b\f\n\r\t\0\u2028\u2029\u203A\uF0D7\uF0DA]/g, (x) => charMap[x] || x)
 }
 
 // Custom plugin to inject CSS into JS bundle
@@ -30,8 +30,8 @@ const injectCss = () => {
 
   const
     cssPath = _path.resolve('dist/index.css'),
-    jsPath = _path.resolve('dist/index.js'),
-    cjsPath = _path.resolve('dist/index.cjs')
+    cjsPath = _path.resolve('dist/index.cjs'),
+    jsPath = _path.resolve('dist/index.js')
 
   if (_fs.existsSync(cssPath)) {
     let cssContent = `${_fs.readFileSync(cssPath, 'utf-8')}`
