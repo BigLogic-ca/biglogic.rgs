@@ -275,7 +275,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       _methodNamespace[pluginName]![methodName] = fn
     },
     set: (key: string, valOrUp: unknown, options: PersistOptions = {}): boolean => {
-      const oldVal = _store.get(key), newVal = _immer && typeof valOrUp === 'function' ? _immerProduce!(oldVal, valOrUp as (draft: unknown) => void) : valOrUp
+      const oldVal = _store.get(key)
+      const newVal = _immer && typeof valOrUp === 'function' ? _immerProduce!(oldVal, valOrUp as (draft: unknown) => void) : valOrUp
       if (_validateInput && !Security.validateKey(key)) { if (!_silent) console.warn(`[gstate] Invalid key: ${key}`); return false }
       if (!Security.hasPermission(_accessRules, key, 'write', _userId)) { _audit('set', key, false, 'RBAC Denied'); if (!_silent) console.error(`[gstate] RBAC Denied for "${key}"`); return false }
 
