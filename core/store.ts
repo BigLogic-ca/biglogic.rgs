@@ -247,7 +247,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
 
   const instance: IStore<S> = {
     _setSilently: (key: string, value: unknown) => {
-      const oldSize = _sizes.get(key) || 0, frozen = (_immer && value !== null && typeof value === 'object') ? _immerFreeze!(deepClone(value), true) : value
+      const oldSize = _sizes.get(key) || 0
+      const frozen = (_immer && value !== null && typeof value === 'object') ? _immerFreeze!(deepClone(value), true) : value
       const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProduction()
       const newSize = hasLimits ? _calculateSize(frozen) : 0
 
@@ -275,7 +276,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
       _methodNamespace[pluginName]![methodName] = fn
     },
     set: (key: string, valOrUp: unknown, options: PersistOptions = {}): boolean => {
-      const oldVal = _store.get(key), newVal = _immer && typeof valOrUp === 'function' ? _immerProduce!(oldVal, valOrUp as (draft: unknown) => void) : valOrUp
+      const oldVal = _store.get(key)
+      const newVal = _immer && typeof valOrUp === 'function' ? _immerProduce!(oldVal, valOrUp as (draft: unknown) => void) : valOrUp
       if (_validateInput && !Security.validateKey(key)) { if (!_silent) console.warn(`[gstate] Invalid key: ${key}`); return false }
       if (!Security.hasPermission(_accessRules, key, 'write', _userId)) { _audit('set', key, false, 'RBAC Denied'); if (!_silent) console.error(`[gstate] RBAC Denied for "${key}"`); return false }
 
@@ -306,13 +308,23 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
 
         _totalSize = _totalSize - oldSize + finalSize
         _sizes.set(key, finalSize)
-        _store.set(key, frozen); _versions.set(key, (_versions.get(key) || 0) + 1)
+        _store.set(key, frozen)
+        _versions.set(key, (_versions.get(key) || 0) + 1)
 
         _snapshot = null // Invalidate snapshot
 
         const shouldPersist = options.persist ?? _persistByDefault
         if (shouldPersist) {
-          _diskQueue.set(key, { value: frozen, options: { ...options, persist: shouldPersist, encoded: options.encoded || config?.encoded } }); if (_diskTimer) clearTimeout(_diskTimer); _diskTimer = setTimeout(_flushDisk, _debounceTime)
+          _diskQueue.set(key, {
+            value: frozen,
+            options: {
+              ...options,
+              persist: shouldPersist,
+              encoded: options.encoded || config?.encoded,
+            },
+          })
+          if (_diskTimer) clearTimeout(_diskTimer)
+          _diskTimer = setTimeout(_flushDisk, _debounceTime)
         }
         _runHook('onSet', { key, value: frozen, store: instance, version: _versions.get(key) })
         _audit('set', key, true)
