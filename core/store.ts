@@ -247,7 +247,8 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
 
   const instance: IStore<S> = {
     _setSilently: (key: string, value: unknown) => {
-      const oldSize = _sizes.get(key) || 0, frozen = (_immer && value !== null && typeof value === 'object') ? _immerFreeze!(deepClone(value), true) : value
+      const oldSize = _sizes.get(key) || 0
+      const frozen = (_immer && value !== null && typeof value === 'object') ? _immerFreeze!(deepClone(value), true) : value
       const hasLimits = (_maxObjectSize > 0 || _maxTotalSize > 0) && !isProduction()
       const newSize = hasLimits ? _calculateSize(frozen) : 0
 
