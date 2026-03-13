@@ -20,7 +20,7 @@ export default defineConfig(
     globalName: pk.code,
     format: ['cjs', 'esm'],
     entry: ['index.ts'],
-    platform: "node",
+    platform: "browser",
     target: "es2024",
     outDir: 'dist',
     minify: 'terser',
