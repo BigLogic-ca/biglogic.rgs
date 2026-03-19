@@ -291,7 +291,7 @@ const getReact = () => {
  * return <MyApp />
  */
 export const useHydrated = (): boolean => {
-  const { useState, useSyncExternalStore } = getReact()
+  const { useSyncExternalStore } = getReact()
 
   // Use a simple subscribe mechanism
   const subscribe = (callback: () => void) => {
