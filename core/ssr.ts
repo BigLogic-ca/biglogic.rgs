@@ -5,7 +5,6 @@
 
 import { createStore, StorageAdapters } from "./store"
 import type { IStore, StoreConfig, PersistOptions, StateUpdater } from "./types"
-import { isProduction } from "./env"
 
 // ============================================================================
 // SSR Environment Detection
