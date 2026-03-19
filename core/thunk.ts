@@ -42,7 +42,7 @@ export type ThunkDispatch<S extends Record<string, unknown> = Record<string, unk
 /**
  * Plain action payload (synchronous action)
  */
-export interface ThunkActionPayload<S extends Record<string, unknown> = Record<string, unknown>> {
+export interface ThunkActionPayload<_S extends Record<string, unknown> = Record<string, unknown>> {
   type: string
   payload?: unknown
   meta?: Record<string, unknown>
@@ -245,7 +245,7 @@ export const createAsyncActions = <S extends Record<string, unknown>>(
   store: IStore<S>,
   actions: Record<string, () => Promise<unknown>>
 ): Record<string, ThunkAction<unknown, S>> => {
-  const thunkStore = createThunkStore(store)
+  const _thunkStore = createThunkStore(store)
 
   const result: Record<string, ThunkAction<unknown, S>> = {}
 
@@ -403,10 +403,10 @@ export const runSaga = <S extends Record<string, unknown>>(
   store: IStore<S>,
   saga: ThunkAction<void, S>
 ): (() => void) => {
-  const thunkStore = createThunkStore(store)
+  const _thunkStore = createThunkStore(store)
 
   // Start the saga
-  const promise = thunkStore.dispatch(saga as ThunkAction<unknown, S>)
+  const _promise = _thunkStore.dispatch(saga as ThunkAction<unknown, S>)
 
   // Return cancel function
   return () => {
