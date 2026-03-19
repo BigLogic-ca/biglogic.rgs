@@ -245,7 +245,7 @@ export const createAsyncActions = <S extends Record<string, unknown>>(
   store: IStore<S>,
   actions: Record<string, () => Promise<unknown>>
 ): Record<string, ThunkAction<unknown, S>> => {
-  const thunkStore = createThunkStore(store)
+  createThunkStore(store)
 
   const result: Record<string, ThunkAction<unknown, S>> = {}
 
