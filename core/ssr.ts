@@ -4,8 +4,7 @@
  */
 
 import { createStore, StorageAdapters } from "./store"
-import type { IStore, StoreConfig, PersistOptions, StateUpdater } from "./types"
-import { isProduction } from "./env"
+import type { IStore, StoreConfig } from "./types"
 
 // ============================================================================
 // SSR Environment Detection
@@ -116,7 +115,7 @@ export const createSSRStore = <S extends Record<string, unknown>>(
   }
 
   // If deferHydration is true, we need special handling
-  const needsDeferredHydration = deferHydration && isClientSide()
+  const _needsDeferredHydration = deferHydration && isClientSide()
 
   /**
    * Manually trigger hydration on client
@@ -293,10 +292,10 @@ const getReact = () => {
  * return <MyApp />
  */
 export const useHydrated = (): boolean => {
-  const { useState, useSyncExternalStore } = getReact()
+  const { useSyncExternalStore } = getReact()
 
   // Use a simple subscribe mechanism
-  const subscribe = (callback: () => void) => {
+  const subscribe = (_callback: () => void) => {
     // No actual subscription needed - we just want to trigger a re-render
     return () => { }
   }
@@ -467,7 +466,7 @@ export const createNextStore = <S extends Record<string, unknown>>(
     useHydrationStatus,
     useDeferredStore: <K extends keyof S>(key: K) => {
       const deferred = useDeferredStore(store)
-      const { useCallback, useMemo } = getReact()
+      const { useCallback } = getReact()
 
       // Create a key-specific hook
       const keyHook = <T>(k: string) => {
