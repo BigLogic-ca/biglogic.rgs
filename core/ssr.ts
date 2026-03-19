@@ -465,7 +465,7 @@ export const createNextStore = <S extends Record<string, unknown>>(
     useHydrationStatus,
     useDeferredStore: <K extends keyof S>(key: K) => {
       const deferred = useDeferredStore(store)
-      const { useCallback, useMemo } = getReact()
+      const { useCallback } = getReact()
 
       // Create a key-specific hook
       const keyHook = <T>(k: string) => {
