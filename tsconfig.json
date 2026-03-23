@@ -62,7 +62,6 @@
     "examples/**/*",
     "docs/**/*",
     "vscode-extension/**/*",
-    "tsup.config.ts",
-    "tsup.plugin.*.ts"
+    "tsup.*"
   ]
 }
