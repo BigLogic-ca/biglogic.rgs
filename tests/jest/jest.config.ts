@@ -1,7 +1,7 @@
 import type { Config } from 'jest'
 import { createRequire } from 'module'
 
-const require = createRequire(import.meta.url)
+const _require = createRequire(import.meta.url)
 
 const config: Config = {
   testEnvironment: 'jsdom',
@@ -13,7 +13,7 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   setupFilesAfterEnv: ['<rootDir>/tests/jest/jest.setup.ts'],
   transform: {
-    '^.+\\.tsx?$': require.resolve('ts-jest')
+    '^.+\\.tsx?$': _require.resolve('ts-jest')
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
