@@ -1,7 +1,4 @@
 import type { Config } from 'jest'
-import { createRequire } from 'module'
-
-const _require = createRequire(import.meta.url)
 
 const config: Config = {
   testEnvironment: 'jsdom',
@@ -13,7 +10,15 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   setupFilesAfterEnv: ['<rootDir>/tests/jest/jest.setup.ts'],
   transform: {
-    '^.+\\.tsx?$': _require.resolve('ts-jest')
+    '^.+\\.tsx?$': ['ts-jest', {
+      useESM: true,
+      tsconfig: {
+        jsx: 'react-jsx',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        module: 'ES2020'
+      }
+    }]
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
