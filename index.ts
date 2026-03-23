@@ -127,7 +127,7 @@ export type {
   ConflictResolution
 } from "./core/sync"
 
-export { initSync, destroySync, useSyncedState, useSyncStatus, triggerSync } from "./core/hooks"
+export { initSync, destroySync, useSyncedState, useSyncStatus, triggerSync, useStoreSubscribe } from "./core/hooks"
 
 // ============================================================================
 // Plugins
