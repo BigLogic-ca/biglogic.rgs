@@ -1,9 +1,7 @@
 import type { Config } from 'jest'
-import { fileURLToPath } from 'url'
-import * as path from 'path'
+import { createRequire } from 'module'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const require = createRequire(import.meta.url)
 
 const config: Config = {
   testEnvironment: 'jsdom',
@@ -15,7 +13,7 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   setupFilesAfterEnv: ['<rootDir>/tests/jest/jest.setup.ts'],
   transform: {
-    '^.+\\.tsx?$': path.resolve(__dirname, '../../tests/node_modules/ts-jest')
+    '^.+\\.tsx?$': require.resolve('ts-jest')
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
