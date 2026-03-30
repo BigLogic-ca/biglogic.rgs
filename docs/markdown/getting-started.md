@@ -29,7 +29,7 @@ function Counter() {
     <div>
       <p>Hello, {name}!</p>
       <p>Count: {count}</p>
-      <button onClick={() =u003e setCount(count + 1)}>
+      <button onClick={() => setCount(count + 1)}>
         +1
       </button>
     </div>
