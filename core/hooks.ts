@@ -242,10 +242,14 @@ export function useSyncedState<T = unknown>(
   // Get or create sync engine
   const engine = _syncEngines.get(namespace)
 
-  // Use useStore with any cast to handle generics
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = useStore(key, targetStore as any) as readonly [T | undefined, (val: any, options?: PersistOptions) => boolean]
-  const value = result[0] as T | undefined
+  const result = useStore(
+    key,
+    targetStore as IStore<Record<string, unknown>>
+  ) as readonly [
+    T | undefined,
+    (val: T | StateUpdater<T>, options?: PersistOptions) => boolean
+  ]
+  const value = result[0]
   const setter = result[1]
 
   // Track sync state
