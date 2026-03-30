@@ -64,7 +64,7 @@ const completionsData: CompletionData[] = [
   {
     label: 'useStore',
     kind: vscode.CompletionItemKind.Function,
-    insertText: new vscode.SnippetString('useStore${1|<T = unknown, S extends Record<string, unknown> = Record<string, unknown>>|}'),
+    insertText: new vscode.SnippetString('useStore${1:<T = unknown, S extends Record<string, unknown> = Record<string, unknown>>}'),
     documentation: createMarkdownString('## useStore<T, S>(keyOrSelector, store?)\n\nReactive Hook for state management.'),
     detail: 'useStore<T, S>(keyOrSelector: string | ((state: S) => T), store?: IStore<S>): T | [...]',
     priority: 90,
