@@ -253,7 +253,7 @@
     "@types/node": "^25.5.0",
     "@types/vscode": "^1.110.0",
     "typescript": "^6.0.2",
-    "vsce": "^1.97.0"
+    "vsce": "^2.15.0"
   },
   "overrides": {
     "yauzl": ">=3.2.1"
