@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useDebugValue, useMemo, useCallback, useEffect, useState } from "react"
+import { useSyncExternalStore, useDebugValue, useMemo, useCallback, useEffect, useState, useRef } from "react"
 import { createStore } from "./store"
 import type { IStore, StoreConfig, PersistOptions, StateUpdater } from "./types"
 import { SyncEngine, SyncConfig, SyncState } from "./sync"
@@ -205,14 +205,16 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
   }, [])
 
   const safeStore = targetStore || ghostStore
-  const hasNoStore = !targetStore && !isProduction()
+  const hasNoStore = !targetStore
 
   const isSelector = typeof keyOrSelector === 'function'
   const key = !isSelector ? (keyOrSelector as string) : null
   const selector = isSelector ? (keyOrSelector as (state: S) => T) : null
 
   // Warn once if no store initialized (key mode only)
-  if (hasNoStore && !isSelector && !isProduction()) {
+  const warnedRef = useRef(false)
+  if (hasNoStore && !isSelector && !isProduction() && !warnedRef.current) {
+    warnedRef.current = true
     console.warn(
       `[gstate] useStore('${key}') called without initialized store. ` +
       `Call initState() first or pass a store instance.`
@@ -271,15 +273,13 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
         }
         return false
       }
-      if (hasNoStore) {
-        if (!isProduction()) {
-          console.error(`[gstate] Cannot set "${key}" - no store initialized. Call initState() first.`)
-        }
+      if (!targetStore) {
+        console.error(`[gstate] Cannot set "${key}" - no store initialized. Call initState() first.`)
         return false
       }
       return safeStore.set<T>(key!, val, options)
     },
-    [safeStore, isSelector, key, hasNoStore]
+    [safeStore, isSelector, key, targetStore]
   )
 
   // Debug value
