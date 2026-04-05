@@ -24,7 +24,6 @@ const _DEFAULT_NS = '__default__'
  * Works with Vite (import.meta.hot) and Webpack (module.hot).
  */
 declare const module: { hot?: { dispose: (cb: () => void) => void } }
-declare const importMeta: { hot?: { dispose: (cb: () => void) => void } }
 
 if (typeof module !== 'undefined' && module.hot) {
   module.hot.dispose(() => {
