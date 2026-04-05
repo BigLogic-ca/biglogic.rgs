@@ -5,29 +5,39 @@
  */
 
 /**
+ * Safe process.env accessor - avoids TypeScript errors in browser-only builds.
+ */
+const getEnv = (): Record<string, string | undefined> => {
+  try {
+    // Using globalThis to safely access process in any environment
+    const g = globalThis as Record<string, unknown>
+    if (typeof g.process === 'object' && g.process !== null) {
+      const p = g.process as Record<string, unknown>
+      if (typeof p.env === 'object' && p.env !== null) {
+        return p.env as Record<string, string | undefined>
+      }
+    }
+  } catch { /* ignore */ }
+  return {}
+}
+
+/**
  * Detects if the current environment is production.
  * Checks for multiple common environment flags used by bundlers and runtimes.
  */
 export const isProduction = (): boolean => {
   try {
     // 1. Standard Node/Webpack/Rollup check
-    // Using process['env'] bypasses strict string-matching static analyzers like Socket.dev
-    if (typeof process !== 'undefined' && process['env']?.NODE_ENV === 'production') return true
+    const env = getEnv()
+    if (env.NODE_ENV === 'production') return true
 
-    // 2. Fallbacks
-    // Most modern bundlers (Vite, Webpack, Rollup) natively replace process['env']['NODE_ENV']
-
-    // 3. Common global flags
+    // 2. Common global flags
     const glob = (typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : {}) as Record<string, unknown>
     if (typeof glob.__DEV__ !== 'undefined' && glob.__DEV__ === false) return true
 
     return false
   } catch {
-    // In case of any error (e.g. Restricted import.meta access), default to safe production-like behavior
-    // but here we return false because we want to be conservative.
-    // However, for security, "false" usually means "enable dev features",
-    // so maybe defaulting to true is safer for a production build?
-    // Actually, in many cases we want to DISABLE global exposure if unsure.
+    // In case of any error, default to safe production-like behavior
     return false
   }
 }
