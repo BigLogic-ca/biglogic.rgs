@@ -311,25 +311,7 @@ export const useHydrationStatus = (): { isHydrated: boolean; isHydrating: boolea
     return { isHydrated: true, isHydrating: false }
   }
 
-  // On client, use useSyncExternalStore to track hydration
-  const subscribe = useCallback((callback: () => void) => {
-    // Use requestAnimationFrame to detect when browser has painted
-    const raf = requestAnimationFrame(() => {
-      callback()
-    })
-    return () => cancelAnimationFrame(raf)
-  }, [])
-
-  const getSnapshot = useCallback(() => {
-    // After first paint, consider app hydrated
-    return { isHydrated: true, isHydrating: false }
-  }, [])
-
-  const getServerSnapshot = useCallback(() => {
-    return { isHydrated: true, isHydrating: false }
-  }, [])
-
-  // Use state to track if we've painted yet
+  // On client, use state to track if we've painted yet
   const [hasPainted, setHasPainted] = useState(false)
 
   useEffect(() => {
