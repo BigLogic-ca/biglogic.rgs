@@ -6,7 +6,7 @@
  */
 
 import { createStore as baseCreateStore } from "./core/store"
-import { useStore as baseUseStore, getStore } from "./core/hooks"
+import { useStore as baseUseStore, getStore, registerStore } from "./core/hooks"
 import * as Security from "./core/security"
 import { isDevelopment } from "./core/env"
 import type { IStore, StoreConfig } from "./core/types"
@@ -30,8 +30,13 @@ export const gstate = <S extends Record<string, unknown>>(
     ? { namespace: configOrNamespace }
     : configOrNamespace
 
+  const ns = config?.namespace || 'gstate'
+
   // Initialize core store
   const store = baseCreateStore<S>(config)
+
+  // Register in global registry for HMR cleanup
+  registerStore(ns, store as IStore<Record<string, unknown>>)
 
   // Initialize state if store is empty or needs defaults
   if (initialState) {
@@ -64,7 +69,11 @@ export {
   useIsStoreReady,
   initState,
   getStore,
+  getStoreByNamespace,
+  registerStore,
+  unregisterStore,
   destroyState,
+  destroyAllStores,
   useStore as useGState,
   useStore as useSimpleState
 } from "./core/hooks"

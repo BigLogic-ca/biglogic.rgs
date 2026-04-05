@@ -48,7 +48,7 @@ useUser(s => {
 | **Security** | None | **AES-256 + RBAC + GDPR** built-in |
 | **Persistence** | Manual localStorage/sessionStorage | **First-class** - Auto-save anywhere |
 | **Offline/Cloud Sync** | Non-existent | **Local-First + Cloud Sync** included |
-| **Bundle Size** | 10-50KB+ | **~2KB** minimal / **~32KB** full |
+| **Bundle Size** | 10-50KB+ | **~80KB** full (minified) |
 | **Type Safety** | Partial | **100% TypeScript** out of the box |
 
 ### 🔥 The Truth About State Management
@@ -72,7 +72,7 @@ Most libraries make you **choose** between:
 | **Security** | 🛡️ **AES-256 + RBAC** | ❌ | ❌ | ❌ | ❌ |
 | **Persistence** | 💾 **First-class** | 🔌 | 🔌 | 🔌 | 🔌 |
 | **Local-First Sync** | ✅ **Built-in** | ❌ | ❌ | ❌ | ❌ |
-| **Bundle Size** | **~2KB/32KB** | ~1KB | >10KB | >20KB | ~3KB |
+| **Bundle Size** | **~80KB** | ~1KB | >10KB | >20KB | ~3KB |
 
 > **RGS is the ONLY library treating Security and Persistence as first-class citizens.**
 
@@ -348,20 +348,9 @@ const store = gstate({ data: {} }, {
 
 ---
 
-## 📦 Build Sizes - Choose Your Weapon
+## 📦 Build Sizes
 
-### Minimal Version (~0.16 KB)
-For embedded systems, widgets, IoT:
-
-```javascript
-import { createStore } from '@biglogic/rgs/core/minimal'
-
-const store = createStore({ count: 0 })
-store.get('count')        // → 0
-store.set('count', 5)     // → true
-```
-
-### Full Version (~32 KB)
+### Full Version (~80 KB minified)
 For production React apps with all features:
 
 ```javascript
@@ -373,8 +362,8 @@ const count = useCounter(s => s.count)
 
 | Version | Size | Use Case |
 |---------|------|----------|
-| **Minimal** | 0.16 KB | Embedded, IoT, Widgets |
-| **Full** | ~32 KB | React Apps, Enterprise |
+| **ESM** | ~80 KB | Modern bundlers (Vite, esbuild) |
+| **CJS** | ~81 KB | Node.js, legacy bundlers |
 
 ---
 
@@ -520,6 +509,26 @@ npm run test
 ## 📄 License
 
 **MIT** © [Dario Passariello](https://github.com/passariello)
+
+---
+
+## 🆕 What's New in v3.9.20
+
+### Store Registry & HMR Safety
+- `gstate()` now auto-registers stores for proper HMR cleanup
+- New `registerStore()` / `unregisterStore()` APIs
+- New `destroyAllStores()` for complete cleanup
+- `destroyState(namespace?)` for targeted cleanup
+
+### SSR Improvements
+- `safeBtoa()` / `safeAtob()` with Node.js Buffer fallback
+- `getServerSnapshot()` uses safe Proxy for selectors
+- No more crashes when selectors access nested properties on empty state
+
+### Developer Experience
+- `isEqual()` now supports Date, Map, Set, RegExp, TypedArray, ArrayBuffer
+- `initState()` warnings only in development mode
+- `useSyncedState()` warns if `initSync()` not called
 
 ---
 

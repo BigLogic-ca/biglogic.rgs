@@ -12,6 +12,34 @@ import { produce as _immerProduce, freeze as _immerFreeze } from 'immer'
 // Helper to get prefix
 const _getPrefix = (namespace: string) => `${namespace}_`
 
+/**
+ * Safe base64 encode - works in both browser and Node.js SSR.
+ */
+const safeBtoa = (str: string): string => {
+  if (typeof btoa !== 'undefined') return btoa(str)
+  // Node.js fallback - use globalThis to avoid TypeScript errors
+  const g = globalThis as Record<string, unknown>
+  if (typeof g.Buffer === 'function') {
+    const Buf = g.Buffer as unknown as { from: (s: string, enc: string) => { toString: (enc: string) => string } }
+    return Buf.from(str, 'binary').toString('base64')
+  }
+  throw new Error('Base64 encoding not available in this environment')
+}
+
+/**
+ * Safe base64 decode - works in both browser and Node.js SSR.
+ */
+const safeAtob = (str: string): string => {
+  if (typeof atob !== 'undefined') return atob(str)
+  // Node.js fallback - use globalThis to avoid TypeScript errors
+  const g = globalThis as Record<string, unknown>
+  if (typeof g.Buffer === 'function') {
+    const Buf = g.Buffer as unknown as { from: (s: string, enc: string) => { toString: (enc: string) => string } }
+    return Buf.from(str, 'base64').toString('binary')
+  }
+  throw new Error('Base64 decoding not available in this environment')
+}
+
 export interface PersistenceContext {
   store: Map<string, unknown>
   versions: Map<string, number>
@@ -48,7 +76,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
     const isEncoded = config?.encoded
 
     if (isEncoded) {
-      dataValue = btoa(JSON.stringify(stateObj))
+      dataValue = safeBtoa(JSON.stringify(stateObj))
     } else {
       dataValue = JSON.stringify(stateObj)
     }
@@ -81,7 +109,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
         if (!encryptionKey) throw new Error(`Encryption key missing for "${key}"`)
         dataValue = await Security.encrypt(data.value, encryptionKey)
       } else if (isEncoded) {
-        dataValue = btoa(JSON.stringify(data.value))
+        dataValue = safeBtoa(JSON.stringify(data.value))
       } else if (typeof data.value === 'object' && data.value !== null) {
         dataValue = JSON.stringify(data.value)
       }
@@ -132,7 +160,7 @@ export const hydrateStore = async (
         if (meta._enc && encryptionKey) {
           d = await Security.decrypt(d, encryptionKey)
         } else if (typeof d === "string") {
-          if (meta._b64) { try { d = JSON.parse(atob(d)) } catch (_e) { } }
+          if (meta._b64) { try { d = JSON.parse(safeAtob(d)) } catch (_e) { } }
           else if (d.startsWith("{") || d.startsWith("[")) { try { d = JSON.parse(d) } catch (_e) { } }
         }
         persisted[key] = d; audit('hydrate', key, true)

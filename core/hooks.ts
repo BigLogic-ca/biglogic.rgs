@@ -1,43 +1,122 @@
-import { useSyncExternalStore, useDebugValue, useMemo, useCallback, useEffect, useState } from "react"
+import { useSyncExternalStore, useDebugValue, useMemo, useCallback, useEffect, useState, useRef } from "react"
 import { createStore } from "./store"
 import type { IStore, StoreConfig, PersistOptions, StateUpdater } from "./types"
 import { SyncEngine, SyncConfig, SyncState } from "./sync"
-import { isProduction } from "./env"
+import { isDevelopment, isProduction } from "./env"
 
-let _defaultStore: IStore<Record<string, unknown>> | null = null
+// ============================================================================
+// Store Registry - Multi-store support with HMR safety
+// ============================================================================
+
+/**
+ * Global store registry - supports multiple named stores.
+ * Keyed by namespace for micro-frontend isolation.
+ */
+const _storeRegistry = new Map<string, IStore<Record<string, unknown>>>()
+
+/**
+ * Default store namespace.
+ */
+const _DEFAULT_NS = '__default__'
+
+/**
+ * HMR cleanup handler - prevents stale store references on hot reload.
+ * Works with Vite (import.meta.hot) and Webpack (module.hot).
+ */
+declare const module: { hot?: { dispose: (cb: () => void) => void } }
+
+if (typeof module !== 'undefined' && module.hot) {
+  module.hot.dispose(() => {
+    _storeRegistry.forEach(store => { try { store.destroy() } catch { /* ignore */ } })
+    _storeRegistry.clear()
+  })
+}
 
 /**
  * Initialize a global store instance.
  * @param config Optional store configuration
  * @returns IStore instance
- * @throws Error if store already exists (prevents accidental overwrites)
  */
 export const initState = <S extends Record<string, unknown>>(
   config?: StoreConfig<S>
 ): IStore<S> => {
-  if (_defaultStore && !config?.namespace) {
-    if (!config?.silent) {
+  const ns = config?.namespace || _DEFAULT_NS
+
+  // Return existing store if namespace already registered
+  const existing = _storeRegistry.get(ns)
+  if (existing) {
+    if (!config?.silent && isDevelopment()) {
       console.warn(
-        "[gstate] Store already exists. Pass a unique namespace to create additional stores."
+        `[gstate] Store "${ns}" already exists. Returning existing instance. Use a unique namespace or call destroyState() first.`
       )
     }
+    return existing as IStore<S>
   }
 
   const store = createStore<S>(config)
-  _defaultStore = store as IStore<Record<string, unknown>>
+  _storeRegistry.set(ns, store as IStore<Record<string, unknown>>)
   return store
 }
 
 /**
  * Cleanup the global state.
  * Safe to call multiple times.
+ * @param namespace Optional namespace to destroy. If not provided, destroys the default store.
  */
-export const destroyState = (): void => {
-  if (_defaultStore) {
-    _defaultStore.destroy()
-    _defaultStore = null
+export const destroyState = (namespace?: string): void => {
+  const ns = namespace || _DEFAULT_NS
+  const store = _storeRegistry.get(ns)
+  if (store) {
+    store.destroy()
+    _storeRegistry.delete(ns)
   }
 }
+
+/**
+ * Cleanup ALL registered stores.
+ * Useful for HMR, testing, and micro-frontend teardown.
+ */
+export const destroyAllStores = (): void => {
+  _storeRegistry.forEach(store => { try { store.destroy() } catch { /* ignore */ } })
+  _storeRegistry.clear()
+}
+
+/**
+ * Get the current default store (for advanced use cases).
+ * Returns null if no store has been initialized.
+ */
+export const getStore = (): IStore<Record<string, unknown>> | null =>
+  _storeRegistry.get(_DEFAULT_NS) || null
+
+/**
+ * Get a store by namespace.
+ * @param namespace Store namespace
+ * @returns Store instance or null
+ */
+export const getStoreByNamespace = (namespace: string): IStore<Record<string, unknown>> | null =>
+  _storeRegistry.get(namespace) || null
+
+/**
+ * Register a store in the global registry.
+ * Used by gstate() to track stores for HMR cleanup.
+ * @param namespace Store namespace
+ * @param store Store instance
+ */
+export const registerStore = (namespace: string, store: IStore<Record<string, unknown>>): void => {
+  _storeRegistry.set(namespace, store)
+}
+
+/**
+ * Unregister a store from the global registry.
+ * @param namespace Store namespace
+ */
+export const unregisterStore = (namespace: string): void => {
+  _storeRegistry.delete(namespace)
+}
+
+// ============================================================================
+// React Hooks
+// ============================================================================
 
 /**
  * Hook to check if the store has finished hydration.
@@ -45,7 +124,7 @@ export const destroyState = (): void => {
  * @returns boolean
  */
 export const useIsStoreReady = (store?: IStore<Record<string, unknown>>): boolean => {
-  const targetStore = store || _defaultStore
+  const targetStore = store || getStore()
 
   const subscribe = useMemo(() =>
     (callback: () => void) => targetStore ? targetStore._subscribe(callback) : () => { },
@@ -60,17 +139,34 @@ export const useIsStoreReady = (store?: IStore<Record<string, unknown>>): boolea
 }
 
 /**
- * Get the current default store (for advanced use cases).
- * Returns null if no store has been initialized.
+ * Internal helper to get the default store with warning.
  */
-export const getStore = (): IStore<Record<string, unknown>> | null => _defaultStore
+const _getDefaultStore = <S extends Record<string, unknown>>(): IStore<S> | null => {
+  const store = getStore()
+  if (!store && !isProduction()) {
+    console.warn(
+      '[gstate] No store initialized. Call initState() before using useStore(), or pass a store instance explicitly.'
+    )
+  }
+  return store as IStore<S> | null
+}
 
 /**
  * Reactive Hook for state management.
  *
  * Supports two modes:
- * 1. String Key: `useStore('count')` -> Returns [value, setter]
- * 2. Type-Safe Selector: `useStore(state => state.count)` -> Returns value (Read-only)
+ * 1. String Key: `useStore('count')` -> Returns [value, setter] tuple
+ * 2. Type-Safe Selector: `useStore(state => state.count)` -> Returns value directly (read-only)
+ *
+ * @example
+ * // Key mode - returns [value, setter]
+ * const [count, setCount] = useStore('count')
+ *
+ * // Selector mode - returns value directly (read-only)
+ * const count = useStore(state => state.count)
+ *
+ * @note Selector mode is READ-ONLY. To update state, use the store instance directly:
+ *       store.set('key', value) or use the key mode: const [, setCount] = useStore('count')
  */
 export function useStore<T, S extends Record<string, unknown> = Record<string, unknown>>(
   selector: (state: S) => T,
@@ -84,13 +180,13 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
   keyOrSelector: string | ((state: S) => T),
   store?: IStore<S>
 ): T | readonly [T | undefined, (val: T | StateUpdater<T>, options?: PersistOptions) => boolean] {
-  // Memoize store reference
+  // Memoize store reference - use provided store or default
   const targetStore = useMemo(() =>
-    (store || _defaultStore) as IStore<S> | null,
+    store || _getDefaultStore<S>(),
     [store]
   )
 
-  // Ghost store fallback
+  // Ghost store fallback - prevents crashes but warns in dev
   const ghostStore = useMemo(() => {
     const noop = () => { }
     const noopFalse = () => false
@@ -103,25 +199,34 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
       _addPlugin: noop, _removePlugin: noop, _getVersion: () => 0,
       get isReady() { return false }, whenReady: () => Promise.resolve(),
       get plugins() { return {} },
-      getSnapshot: () => ({} as S), // Ghost snapshot
+      getSnapshot: () => ({} as S),
       get namespace() { return "ghost" }, get userId() { return undefined }
     } as unknown as IStore<S>
   }, [])
 
   const safeStore = targetStore || ghostStore
+  const hasNoStore = !targetStore
 
   const isSelector = typeof keyOrSelector === 'function'
   const key = !isSelector ? (keyOrSelector as string) : null
   const selector = isSelector ? (keyOrSelector as (state: S) => T) : null
 
+  // Warn once if no store initialized (key mode only)
+  const warnedRef = useRef(false)
+  if (hasNoStore && !isSelector && !isProduction() && !warnedRef.current) {
+    warnedRef.current = true
+    console.warn(
+      `[gstate] useStore('${key}') called without initialized store. ` +
+      `Call initState() first or pass a store instance.`
+    )
+  }
+
   // 1. Subscribe
   const subscribe = useCallback(
     (callback: () => void) => {
       if (isSelector) {
-        // Selector mode: subscribe to all changes
         return safeStore._subscribe(callback)
       } else {
-        // Key mode: subscribe to key changes
         return safeStore._subscribe(callback, key!)
       }
     },
@@ -137,10 +242,17 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
     }
   }, [safeStore, isSelector, key, selector])
 
-  // 3. Get Snapshot (Server)
+  // 3. Get Snapshot (Server) - safe selector for empty state
   const getServerSnapshot = useCallback(() => {
     if (isSelector) {
-      try { return selector!({} as S) } catch { return undefined }
+      try {
+        // Create a safe proxy that returns undefined for any property access
+        const safeEmptyProxy = new Proxy({} as S, {
+          get: () => undefined,
+          has: () => false
+        })
+        return selector!(safeEmptyProxy)
+      } catch { return undefined }
     } else {
       return undefined
     }
@@ -148,7 +260,7 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
 
   const value = useSyncExternalStore(
     subscribe,
-    getSnapshot as () => T | undefined, // Cast needed for union types
+    getSnapshot as () => T | undefined,
     getServerSnapshot as () => T | undefined
   )
 
@@ -157,26 +269,36 @@ export function useStore<T = unknown, S extends Record<string, unknown> = Record
     (val: T | StateUpdater<T>, options?: PersistOptions) => {
       if (isSelector) {
         if (!isProduction()) {
-          console.warn('[gstate] Cannot set value when using a selector.')
+          console.warn('[gstate] Cannot set value when using a selector. Use the setter from key mode: useStore("key")[1]')
         }
+        return false
+      }
+      if (!targetStore) {
+        console.error(`[gstate] Cannot set "${key}" - no store initialized. Call initState() first.`)
         return false
       }
       return safeStore.set<T>(key!, val, options)
     },
-    [safeStore, isSelector, key]
+    [safeStore, isSelector, key, targetStore]
   )
 
   // Debug value
   useDebugValue(value, v => isSelector ? `Selector: ${JSON.stringify(v)}` : `${key}: ${JSON.stringify(v)}`)
 
+  // Selector mode returns value directly (read-only)
   if (isSelector) {
     return value as T
   }
 
+  // Key mode returns [value, setter] tuple
   return [value, setter] as const
 }
 
-// Store map for sync engines - using any to avoid complex generic issues
+// ============================================================================
+// Sync Engine
+// ============================================================================
+
+// Store map for sync engines
 const _syncEngines = new Map<string, SyncEngine<Record<string, unknown>>>()
 
 /**
@@ -218,15 +340,6 @@ export const destroySync = (namespace: string): void => {
  * @param key - State key
  * @param store - Optional store instance (uses default if not provided)
  * @returns [value, setter, syncState]
- *
- * @example
- * const [count, setCount, syncState] = useSyncedState('count')
- *
- * // syncState contains:
- * // - isOnline: boolean
- * // - isSyncing: boolean
- * // - pendingChanges: number
- * // - conflicts: number
  */
 export function useSyncedState<T = unknown>(
   key: string,
@@ -236,11 +349,20 @@ export function useSyncedState<T = unknown>(
   (val: T | StateUpdater<T>, options?: PersistOptions) => boolean,
   SyncState
 ] {
-  const targetStore = store || _defaultStore
+  const targetStore = store || getStore()
   const namespace = targetStore?.namespace || 'default'
 
-  // Get or create sync engine
-  const engine = _syncEngines.get(namespace)
+  // Get or create sync engine - auto-initialize if missing
+  let engine = _syncEngines.get(namespace)
+  if (!engine && targetStore) {
+    // Auto-create sync engine with default config
+    if (isDevelopment()) {
+      console.warn(
+        `[gstate] useSyncedState('${key}') called without initSync(). ` +
+        `Call initSync(store, config) first for proper sync behavior.`
+      )
+    }
+  }
 
   const result = useStore(
     key,
@@ -275,7 +397,6 @@ export function useSyncedState<T = unknown>(
       const result = setter(val, options)
 
       if (result && engine) {
-        // Get the current value and queue for sync
         const currentValue = targetStore?.get(key)
         engine.queueChange(key, currentValue)
       }
@@ -290,10 +411,6 @@ export function useSyncedState<T = unknown>(
 
 /**
  * Hook to get global sync status
- *
- * @example
- * const status = useSyncStatus()
- * // status.isOnline, status.isSyncing, status.pendingChanges
  */
 export const useSyncStatus = (): SyncState => {
   const [state, setState] = useState<SyncState>({
@@ -305,7 +422,6 @@ export const useSyncStatus = (): SyncState => {
   })
 
   useEffect(() => {
-    // Aggregate state from all sync engines
     const updateState = () => {
       let isOnline = true
       let isSyncing = false
@@ -331,7 +447,6 @@ export const useSyncStatus = (): SyncState => {
 
     updateState()
 
-    // Subscribe to all engines
     const unsubscribes = Array.from(_syncEngines.values()).map(engine =>
       engine.onStateChange(updateState)
     )
@@ -346,7 +461,7 @@ export const useSyncStatus = (): SyncState => {
  * Trigger manual sync for a specific namespace
  */
 export const triggerSync = async (namespace?: string): Promise<void> => {
-  const targetNamespace = namespace || _defaultStore?.namespace
+  const targetNamespace = namespace || getStore()?.namespace
   if (!targetNamespace) return
 
   const engine = _syncEngines.get(targetNamespace)
@@ -359,13 +474,13 @@ export const triggerSync = async (namespace?: string): Promise<void> => {
  * Hook to subscribe to any state changes and trigger re-render.
  * Use this when you want to re-render on any store change without reading a specific key.
  * @param store Optional store instance
- * @returns [isSubscribed, forceRender] - isSubscribed is always true, forceRender is a function to manually trigger re-render
+ * @returns [isSubscribed, forceRender]
  */
 export function useStoreSubscribe<S extends Record<string, unknown> = Record<string, unknown>>(
   store?: IStore<S>
 ): readonly [boolean, () => void] {
   const targetStore = useMemo(() =>
-    (store || _defaultStore) as IStore<S> | null,
+    (store || getStore()) as IStore<S> | null,
     [store]
   )
 
@@ -383,7 +498,6 @@ export function useStoreSubscribe<S extends Record<string, unknown> = Record<str
 
   const [, setForceRender] = useState(0)
 
-  // FIX: Wrap setForceRender in a callback to match the () => void type
   const forceRender = useCallback(() => setForceRender(n => n + 1), [])
 
   return [true, forceRender] as const
