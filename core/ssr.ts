@@ -306,24 +306,44 @@ export const useHydrated = (): boolean => {
  * )
  */
 export const useHydrationStatus = (): { isHydrated: boolean; isHydrating: boolean } => {
-  const [isHydrating, setIsHydrating] = useState(() => isServerSide())
-  const [isHydrated, setIsHydrated] = useState(() => isServerSide())
+  // On server, always hydrated
+  if (isServerSide()) {
+    return { isHydrated: true, isHydrating: false }
+  }
 
-  useEffect(() => {
-    if (isServerSide()) return
-
-    setIsHydrating(true)
-
-    // Give a tick for React to render
-    const timer = setTimeout(() => {
-      setIsHydrated(true)
-      setIsHydrating(false)
-    }, 0)
-
-    return () => clearTimeout(timer)
+  // On client, use useSyncExternalStore to track hydration
+  const subscribe = useCallback((callback: () => void) => {
+    // Use requestAnimationFrame to detect when browser has painted
+    const raf = requestAnimationFrame(() => {
+      callback()
+    })
+    return () => cancelAnimationFrame(raf)
   }, [])
 
-  return { isHydrated, isHydrating }
+  const getSnapshot = useCallback(() => {
+    // After first paint, consider app hydrated
+    return { isHydrated: true, isHydrating: false }
+  }, [])
+
+  const getServerSnapshot = useCallback(() => {
+    return { isHydrated: true, isHydrating: false }
+  }, [])
+
+  // Use state to track if we've painted yet
+  const [hasPainted, setHasPainted] = useState(false)
+
+  useEffect(() => {
+    if (hasPainted) return
+    const raf = requestAnimationFrame(() => {
+      setHasPainted(true)
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [hasPainted])
+
+  return {
+    isHydrated: hasPainted,
+    isHydrating: !hasPainted
+  }
 }
 
 /**
