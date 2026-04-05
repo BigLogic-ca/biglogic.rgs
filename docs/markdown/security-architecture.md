@@ -48,3 +48,9 @@ For real-world implementations, refer to the `examples/security-best-practices` 
 - **Storage Key Validation**: Keys validated before persistence to prevent injection.
 - **Production Safety**: Global window access only enabled in development mode (`NODE_ENV !== 'production'`).
 - **PBKDF2 Key Derivation**: New `deriveKeyFromPassword()` and `generateSalt()` functions for secure password-based encryption (NIST SP 800-132 compliant - 600k iterations, 32-byte salt).
+
+## Summary of 3.9.20 Enhancements
+- **Safe Base64 for SSR**: `safeBtoa()` and `safeAtob()` functions with Node.js Buffer fallback for server-side rendering compatibility.
+- **Deep Equality Enhancement**: `isEqual()` now properly compares Date, Map, Set, RegExp, TypedArray, and ArrayBuffer objects.
+- **Development-Only Warnings**: `initState()` duplicate store warnings now only appear in development mode, preventing console spam in production.
+- **SSR Selector Safety**: `getServerSnapshot()` now uses a safe Proxy that returns `undefined` for any property access, preventing crashes when selectors access nested properties on empty state.
