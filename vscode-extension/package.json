@@ -38,7 +38,7 @@
     "biglogic"
   ],
   "engines": {
-    "vscode": "^1.110.0"
+    "vscode": "^1.116.0"
   },
   "categories": [
     "AI",
@@ -250,9 +250,9 @@
     "package": "vsce package -o rgs.vsix"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
-    "@types/vscode": "^1.110.0",
-    "typescript": "^6.0.2",
+    "@types/node": "^25.6.0",
+    "@types/vscode": "^1.116.0",
+    "typescript": "^6.0.3",
     "vsce": "^2.15.0"
   },
   "overrides": {
