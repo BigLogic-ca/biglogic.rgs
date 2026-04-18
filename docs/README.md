@@ -48,7 +48,6 @@ useUser(s => {
 | **Security** | None | **AES-256 + RBAC + GDPR** built-in |
 | **Persistence** | Manual localStorage/sessionStorage | **First-class** - Auto-save anywhere |
 | **Offline/Cloud Sync** | Non-existent | **Local-First + Cloud Sync** included |
-| **Bundle Size** | 10-50KB+ | **~80KB** full (minified) |
 | **Type Safety** | Partial | **100% TypeScript** out of the box |
 
 ### 🔥 The Truth About State Management
@@ -72,7 +71,6 @@ Most libraries make you **choose** between:
 | **Security** | 🛡️ **AES-256 + RBAC** | ❌ | ❌ | ❌ | ❌ |
 | **Persistence** | 💾 **First-class** | 🔌 | 🔌 | 🔌 | 🔌 |
 | **Local-First Sync** | ✅ **Built-in** | ❌ | ❌ | ❌ | ❌ |
-| **Bundle Size** | **~80KB** | ~1KB | >10KB | >20KB | ~3KB |
 
 > **RGS is the ONLY library treating Security and Persistence as first-class citizens.**
 
