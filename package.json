@@ -1,7 +1,7 @@
 {
   "name": "@biglogic/rgs",
   "code": "argis",
-  "version": "3.9.20",
+  "version": "3.9.30",
   "description": "Argis (RGS) - Reactive Global State: A react state everywhere made easy",
   "main": "./index.js",
   "browser": "./index.cjs",
@@ -66,10 +66,10 @@
     "email": "dariopassariello@gmail.com"
   },
   "scripts": {
-    "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
+    "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly && npm run build:extension",
     "build:extension": "cd vscode-extension && vsce package -o ../docs/extension/rgs.vsix",
     "watch": "tsup --watch",
-    "npm:pack": "npm run build && npm run build:extension && cd dist && npm pack",
+    "npm:pack": "npm run build && cd dist && npm pack",
     "npm:publish": "npm run build && npm publish ./dist --access public",
     "dev": "npm run generate-imports && node esbuild.config.mjs --watch-and-serve",
     "test": "cd tests && npm run test",
@@ -80,20 +80,20 @@
   "dependencies": {},
   "devDependencies": {
     "@jest/globals": "^30.3.0",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "@types/react": "19.2.14",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-sass-plugin": "3.7.0",
     "esbuild-scss-modules-plugin": "1.1.1",
     "immer": "11.1.4",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "terser": "5.46.1",
     "ts-node": "10.9.2",
     "tslib": "^2.8.1",
     "tsup": "8.5.1",
     "tsx": "4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
