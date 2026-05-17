@@ -4,7 +4,7 @@
     "code": "rgs",
     "host": {
       "dev": "http://localhost",
-      "prod": "https://biglogic.ca/rgs"
+      "prod": "https://npm.picla.net/rgs"
     },
     "socket": {
       "url": {
