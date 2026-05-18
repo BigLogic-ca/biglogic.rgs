@@ -1,11 +1,3 @@
 {
-  "reject": [
-    "@eslint/js",
-    "@typescript-eslint/eslint-plugin",
-    "@typescript-eslint/parser",
-    "typescript-eslint",
-    "eslint",
-    "eslint-plugin-react-hooks",
-    "globals"
-  ]
+  "reject": []
 }
