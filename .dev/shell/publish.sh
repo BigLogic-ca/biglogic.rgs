@@ -4,7 +4,7 @@
 cd ../..
 npm run build
 
-cd ../../vscode-extension
+cd ../../extension/vscode
 npm run build-dist
 
 npm publish ./dist --access public
