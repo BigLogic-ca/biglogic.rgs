@@ -9,7 +9,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   setupFilesAfterEnv: ['<rootDir>/tests/jest/jest.setup.ts'],
   transform: {
-    '^.+\\.tsx?$': ['<rootDir>/tests/node_modules/ts-jest', {
+    '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,
       tsconfig: {
         rootDir: '<rootDir>',
