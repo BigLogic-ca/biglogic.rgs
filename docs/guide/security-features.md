@@ -9,22 +9,20 @@ Restrict state access based on user roles and permissions.
 ### Setting Up RBAC
 
 ```typescript
-import { addAccessRule, hasPermission, Permission } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
-// Define access rules
-addAccessRule(
-  /admin_.*/,  // Regex pattern for admin-only keys
-  ['read', 'write', 'delete', 'admin']
-)
-
-addAccessRule(
-  /user_.*/,
-  ['read', 'write'] // Regular users can read and write user data
-)
+// Define access rules in store config
+const store = gstate({ admin_data: null, user_data: null }, {
+  userId: 'user-123',
+  accessRules: [
+    { pattern: /^admin_/, permissions: ['admin'] },
+    { pattern: /^user_/, permissions: ['read', 'write'] }
+  ]
+})
 
 // Check permission before access
-if (hasPermission(rules, 'admin_settings', 'write', userId)) {
-  setState('admin_settings', newSettings)
+if (store.hasPermission('admin_data', 'write', 'user-123')) {
+  store.set('admin_data', newSettings)
 } else {
   console.warn('Access denied: insufficient permissions')
 }
@@ -43,13 +41,17 @@ if (hasPermission(rules, 'admin_settings', 'write', userId)) {
 
 ```typescript
 // Dynamic rule based on user attributes
-addAccessRule(
-  (key: string, userId?: string) => {
-    // Only allow access to user's own data
-    return key.startsWith(`user_${userId}_`)
-  },
-  ['read', 'write']
-)
+const store = gstate({ user_data: null }, {
+  accessRules: [
+    {
+      pattern: (key: string, userId?: string) => {
+        // Only allow access to user's own data
+        return key.startsWith(`user_${userId}_`)
+      },
+      permissions: ['read', 'write']
+    }
+  ]
+})
 ```
 
 ## AES-256-GCM Encryption
@@ -62,19 +64,51 @@ Encrypt sensitive state data at rest.
 import { 
   generateEncryptionKey, 
   encrypt, 
-  decrypt 
+  decrypt,
+  deriveKeyFromPassword,
+  generateSalt,
+  exportKey,
+  importKey
 } from '@biglogic/rgs'
 
 // Generate encryption key
 const encryptionKey = await generateEncryptionKey()
 
+// Export key for storage (store securely!)
+const { key, iv } = await exportKey(encryptionKey)
+
+// Later, import the key
+const importedKey = await importKey(key, iv)
+
 // Store encrypted data
-const encrypted = await encrypt(sensitiveData, encryptionKey)
-setState('encrypted_data', encrypted)
+const store = gstate({ sensitive: null }, {
+  encryptionKey: importedKey
+})
+
+// Or encrypt manually
+const encrypted = await encrypt(sensitiveData, importedKey)
+store.set('sensitive', encrypted, { encrypted: true })
 
 // Retrieve and decrypt
-const stored = getState<string>('encrypted_data')
-const decrypted = await decrypt<MyData>(stored, encryptionKey)
+const stored = store.get('sensitive')
+const decrypted = await decrypt(stored, importedKey)
+```
+
+### Key Derivation from Password
+
+Derive encryption keys from user passwords using PBKDF2 (NIST SP 800-132 compliant).
+
+```typescript
+import { deriveKeyFromPassword, generateSalt } from '@biglogic/rgs'
+
+// User provides password
+const password = 'user-password'
+
+// Generate salt (store alongside encrypted data)
+const salt = generateSalt(32)
+
+// Derive key (NIST SP 800-132 compliant: 600,000+ iterations)
+const encryptionKey = await deriveKeyFromPassword(password, salt, 600000)
 ```
 
 ### Key Derivation from Password
@@ -161,15 +195,18 @@ Manage user consent and data rights (GDPR Articles 17, 20).
 ### Managing Consent
 
 ```typescript
-import { recordConsent, hasConsent, ConsentsMap } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ data: null }, {
+  userId: 'user-123'
+})
 
 // Record user consent
-const consentsMap: ConsentsMap = new Map()
-recordConsent(consentsMap, userId, 'analytics', true)
-recordConsent(consentsMap, userId, 'marketing', false)
+store.recordConsent('user-123', 'analytics', true)
+store.recordConsent('user-123', 'marketing', false)
 
 // Check consent before processing
-if (hasConsent(consentsMap, userId, 'analytics')) {
+if (store.hasConsent('user-123', 'analytics')) {
   // Process analytics
 }
 ```
@@ -177,19 +214,23 @@ if (hasConsent(consentsMap, userId, 'analytics')) {
 ### Data Portability (Article 20)
 
 ```typescript
-import { exportUserData } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ user: null })
 
 // Export user data (GDPR Article 20 - Right to data portability)
-const userData = exportUserData(consentsMap, userId)
+const userData = store.exportUserData('user-123')
 ```
 
 ### Right to Be Forgotten (Article 17)
 
 ```typescript
-import { deleteUserData } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ user: null })
 
 // Delete user data (GDPR Article 17 - Right to be forgotten)
-const result = deleteUserData(consentsMap, userId)
+const result = store.deleteUserData('user-123')
 ```
 
 ## Input Sanitization
@@ -199,13 +240,17 @@ Prevent XSS attacks with built-in sanitization.
 ### Automatic Sanitization
 
 ```typescript
-import { sanitizeValue } from '@biglogic/rgs'
+import { gstate, sanitizeValue } from '@biglogic/rgs'
+
+const store = gstate({ content: null }, {
+  validateInput: true // Enables automatic sanitization
+})
 
 // Automatically sanitizes when setting state
-const clean = sanitizeValue(userInput)
+store.set('content', userInput)
 
 // Or use manually
-setState('user_content', sanitizeValue(untrustedHTML))
+store.set('content', sanitizeValue(untrustedHTML))
 ```
 
 ### What Gets Sanitized
