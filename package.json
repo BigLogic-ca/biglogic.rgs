@@ -77,7 +77,7 @@
   },
   "scripts": {
     "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
-    "build:extension": "cd extension/vscode && npx vsce package -o ../../docs/extension/rgs.vsix",
+    "build:extension": "cd extension/vscode && vsce package --no-dependencies -o ../../docs/extension/rgs.vsix",
     "watch": "tsup --watch",
     "npm:pack": "npm run build && npm run build:extension && cd dist && npm pack",
     "npm:publish": "npm run build && npm publish ./dist --access public",
