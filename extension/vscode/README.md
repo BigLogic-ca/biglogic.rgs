@@ -1,9 +1,5 @@
 # RGS (Argis) - Visual Studio Code Extension
 
-<p align="center">
-  <img src="media/icon.png" alt="RGS Logo" width="128" height="128" />
-</p>
-
 ## Overview
 
 RGS (Reactive Global State) is a powerful Visual Studio Code extension that provides comprehensive **IntelliSense**, **diagnostics**, and a **State Explorer** sidebar for the RGS state management library.
