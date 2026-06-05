@@ -31,5 +31,6 @@
       "dev": "http://localhost/"
     },
     "cdn": {}
-  }
+  },
+  "version": "3.9.56"
 }
