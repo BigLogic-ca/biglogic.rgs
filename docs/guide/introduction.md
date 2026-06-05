@@ -44,4 +44,5 @@ RGS is particularly well-suited for:
 
 - [Installation](installation.md) - Get started with RGS
 - [Quick Start](quick-start.md) - Basic usage examples
-- [Core Concepts](core-concepts.md) - Understand the fundamentals
+- [Core Concepts](core-concepts.md) - Understand the fundamentals (coming soon)
+- [API Reference](api-reference.md) - Complete API documentation (coming soon)
