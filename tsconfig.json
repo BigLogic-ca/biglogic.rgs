@@ -14,18 +14,15 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "verbatimModuleSyntax": false,
-    // Emit
     "declaration": true,
     "declarationMap": false,
     "sourceMap": false,
     "outDir": "./dist",
     "removeComments": true,
     "importHelpers": false,
-    // Interop Constraints
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    // Strict Type-Checking Options
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -37,7 +34,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    // Completeness
     "skipLibCheck": true,
     "jsx": "react-jsx"
   },
@@ -61,7 +57,7 @@
     "tests/**/*",
     "examples/**/*",
     "docs/**/*",
-    "vscode-extension/**/*",
+    "extension/**/*",
     "tsup.*"
   ]
 }

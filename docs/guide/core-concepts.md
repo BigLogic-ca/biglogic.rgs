@@ -4,15 +4,15 @@ Understanding these core concepts will help you effectively use RGS in your appl
 
 ## Store Initialization
 
-The `initState()` function creates a new store instance with optional initial state.
+The `gstate()` function creates a new store with a typed hook simultaneously.
 
 ### Basic Initialization
 
 ```typescript
-import { initState, StoreContext } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
-// Basic initialization
-const store = initState({
+// Basic initialization with hook
+const useStore = gstate({
   key: 'value'
 })
 ```
@@ -20,13 +20,13 @@ const store = initState({
 ### Initialization with Configuration
 
 ```typescript
-const store = initState(
+import { gstate } from '@biglogic/rgs'
+
+const useStore = gstate(
   { user: null, theme: 'light' },
   {
     namespace: 'my-app',      // Namespace for persistence
-    storage: localStorage,    // Storage adapter
-    encrypt: true,            // Enable encryption
-    encryptionKey: keyData    // Encryption key (see Security section)
+    encryptionKey: keyData   // Encryption key (see Security section)
   }
 )
 ```
@@ -36,12 +36,13 @@ const store = initState(
 | Option | Type | Description |
 |--------|------|-------------|
 | `namespace` | `string` | Isolates state in a namespace |
-| `storage` | `StorageAdapter` | Storage backend (localStorage, sessionStorage, custom) |
-| `encrypt` | `boolean` | Enable AES-256-GCM encryption |
+| `storage` | `Storage` | Storage backend (localStorage, sessionStorage, custom) |
 | `encryptionKey` | `EncryptionKey` | Key for encryption (see Security) |
-| `persist` | `boolean` | Enable automatic persistence |
-| `hydrate` | `boolean` | Auto-hydrate on initialization |
-| `maxObjectSize` | `number` | Max object size in bytes (0 = unlimited) |
+| `persistByDefault` | `boolean` | Auto-persist all keys |
+| `auditEnabled` | `boolean` | Enable audit logging |
+| `userId` | `string` | User ID for audit/RBAC |
+| `accessRules` | `Array` | RBAC rules for security |
+| `immer` | `boolean` | Enable Immer (default: true) |
 
 ## Reactive State
 
@@ -50,20 +51,17 @@ State in RGS is reactive - components automatically re-render when subscribed st
 ### How Reactivity Works
 
 1. **Subscription**: When a component uses `useStore('key')`, it subscribes to that key
-2. **Update**: When state changes via `setState('key', value)`, all subscribers are notified
+2. **Update**: When state changes via `store.set('key', value)`, all subscribers are notified
 3. **Re-render**: Subscribed components re-render with the new value
 
 ```typescript
-import { watch } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ counter: 0 })
 
 // Subscribe to state changes
-const unsubscribe = watch('counter', (newValue, oldValue) => {
-  console.log(`Counter changed: ${oldValue} -> ${newValue}`)
-})
-
-// Watch multiple keys
-watch(['user', 'settings'], (changes) => {
-  console.log('State changed:', changes)
+const unsubscribe = store.watch('counter', (newValue) => {
+  console.log(`Counter changed to: ${newValue}`)
 })
 
 // Stop watching
@@ -78,10 +76,10 @@ Namespaces allow you to isolate state for different parts of your application or
 
 ```typescript
 // Initialize with namespace
-initState({ theme: 'dark' }, { namespace: 'user-preferences' })
+const useStore = gstate({ theme: 'dark' }, 'user-preferences')
 
 // Access namespaced state
-const [theme] = useStore('theme', { namespace: 'user-preferences' })
+const [theme] = useStore('theme')
 ```
 
 ### Use Cases for Namespaces
@@ -91,14 +89,6 @@ const [theme] = useStore('theme', { namespace: 'user-preferences' })
 - **Feature flags**: Group feature-specific state
 - **Temporary state**: Separate ephemeral from persistent state
 
-```typescript
-// Example: Multi-user scenario
-initState({ theme: 'light' }, { namespace: `user-${userId}` })
-
-// Later...
-const [theme] = useStore('theme', { namespace: `user-${userId}` })
-```
-
 ## State Shape
 
 RGS supports flexible state shapes:
@@ -106,7 +96,7 @@ RGS supports flexible state shapes:
 ### Flat State (Recommended)
 
 ```typescript
-initState({
+const useStore = gstate({
   counter: 0,
   user: null,
   theme: 'dark'
@@ -116,53 +106,31 @@ initState({
 ### Nested State
 
 ```typescript
-initState({
+const useStore = gstate({
   user: {
     profile: { name: 'John', email: 'john@example.com' },
     settings: { theme: 'dark', notifications: true }
   }
 })
 
-// Access nested values with dot notation
+// Access nested values
 const [name] = useStore('user.profile.name')
-```
-
-### Dynamic Keys
-
-```typescript
-// Store items with dynamic keys
-setState(`item.${itemId}`, itemData)
-
-// Retrieve with template
-const [item] = useStore(`item.${itemId}`)
 ```
 
 ## Equality and Updates
 
-RGS uses reference equality by default. Objects/arrays are only considered "changed" if the reference changes.
+RGS uses deep equality by default. Objects/arrays are compared by value.
 
-### Shallow Equality
+### Automatic Immutability
 
-```typescript
-const [user, setUser] = useStore('user')
-
-// This WON'T trigger update (same reference)
-user.name = 'Alice'
-setUser(user)
-
-// This WILL trigger update (new reference)
-setUser({ ...user, name: 'Alice' })
-```
-
-### Custom Equality Function
+Immer is enabled by default - you can write mutations that are automatically converted to immutable updates:
 
 ```typescript
-const [value] = useStore('key', {
-  equalityFn: (a, b) => {
-    // Custom comparison logic
-    return JSON.stringify(a) === JSON.stringify(b)
-  }
-})
+const useStore = gstate({ user: { name: 'John' } })
+
+// This is safe - Immer handles immutability
+const [name, setName] = useStore('user.name')
+setName('Alice') // Creates new object internally
 ```
 
 ## Next Steps

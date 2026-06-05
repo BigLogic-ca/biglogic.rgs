@@ -1,0 +1,15 @@
+*.ts
+*.map
+tsconfig.json
+build/**/*.d.ts.map
+build/**/*.js.map
+build/json/**
+extension.ts
+!**/build/extension.d.ts
+!.vscodeignore
+!build/extension.js
+!json/**
+!media/**
+!package.json
+!README.md
+!LICENSE*

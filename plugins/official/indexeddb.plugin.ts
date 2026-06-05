@@ -1,4 +1,4 @@
-import type { IPlugin, PluginContext } from '../../core/types'
+import type { IPlugin } from '../../core/types'
 
 /**
  * IndexedDB Plugin for RGS

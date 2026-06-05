@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "Node16",
     "lib": [
       "ES2020",
       "dom"
@@ -9,24 +9,19 @@
     "types": [
       "node"
     ],
-    "outDir": "./build",
-    "rootDir": ".",
-    "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    // "moduleResolution": "node",
-    "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@types/vscode"
-    ]
+    "moduleResolution": "node16",
+    "rootDir": "./",
+    "outDir": "./build",
   },
   "include": [
     "extension.ts",
+    "media/**/*",
     "json/**/*.json"
   ],
   "exclude": [

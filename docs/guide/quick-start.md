@@ -52,57 +52,63 @@ export const Counter: React.FC = () => {
 Create derived state that automatically updates when dependencies change:
 
 ```typescript
-import { computed } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ counter: 0 })
 
 // Create a computed value that reacts to state changes
-const doubledCount = computed('counter', (count) => count * 2)
+store.compute('doubled', (get) => get('counter') * 2)
 
 // Use in component
-const [doubled] = useStore<number>('doubledCount')
+const [doubled] = useStore<number>('doubled')
 ```
 
 ## Reading State Without Subscription
 
-Use `getState` to read state without subscribing to changes:
+Use `store.get()` to read state without subscribing to changes:
 
 ```typescript
-import { getState } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ user: null })
 
 // Read state anywhere in your code
-const currentUser = getState<User>('user')
+const currentUser = store.get<User>('user')
 console.log('Current user:', currentUser)
 ```
 
 ## Updating State
 
-Update state with the setter or `setState` function:
+Update state with the setter or direct store methods:
 
 ```typescript
-import { setState } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ name: 'Guest' })
 
 // Using the setter from useStore
-const [name, setName] = useStore<string>('user.name')
+const [name, setName] = useStore<string>('name')
 setName('Alice')
 
-// Using setState directly
-setState('settings.theme', 'light')
+// Using store directly
+store.set('name', 'Bob')
+
+// Using updater function (Immer)
+store.set('name', draft => { draft = 'Charlie' })
 ```
 
 ## Watching for Changes
 
-Subscribe to state changes with `watch`:
+Subscribe to state changes with `store.watch`:
 
 ```typescript
-import { watch } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
-// Watch a single key
-const unsubscribe = watch('counter', (newValue, oldValue) => {
-  console.log(`Counter changed: ${oldValue} -> ${newValue}`)
-})
+const store = gstate({ counter: 0 })
 
-// Watch multiple keys
-watch(['user', 'settings'], (changes) => {
-  console.log('State changed:', changes)
+// Watch a key
+const unsubscribe = store.watch('counter', (newValue) => {
+  console.log(`Counter changed to: ${newValue}`)
 })
 
 // Stop watching
@@ -116,17 +122,17 @@ Here's a complete working example:
 ```tsx
 // App.tsx
 import React from 'react'
-import { initState, useStore, useState } from '@biglogic/rgs'
+import { gstate, useStore } from '@biglogic/rgs'
 
-// Initialize once at app root
-initState({
+// Create store with initial state
+const useAppStore = gstate({
   todos: [] as string[],
   filter: 'all' as 'all' | 'active' | 'completed'
 })
 
 export const TodoApp: React.FC = () => {
-  const [todos, setTodos] = useStore<string[]>('todos')
-  const [filter, setFilter] = useStore<'all' | 'active' | 'completed'>('filter')
+  const [todos, setTodos] = useAppStore('todos')
+  const [filter, setFilter] = useAppStore<'all' | 'active' | 'completed'>('filter')
   
   const addTodo = (text: string) => {
     setTodos([...todos, text])

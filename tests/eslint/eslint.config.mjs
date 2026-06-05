@@ -73,6 +73,21 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/", "node_modules/", "tests/", "jest.config.ts", "esbuild.config.mjs", ".cache/", ".dev/", ".vscode/", "examples/", "plugins/", "vscode-extension/", "public/", "archive/", ".private/", ".backup/", "*old", "*OLD/", "*OLD", "types/", "servers/", "src/pages/nodes/.OLD/", "tsup.*"]
+    ignores: [
+      "node_modules/",
+      "dist/",
+      "tests/",
+      "jest.config.ts",
+      "esbuild.config.mjs",
+      ".cache/",
+      ".dev/",
+      ".vscode/",
+      "examples/",
+      "extension/",
+      "public/",
+      ".private/",
+      ".backup/",
+      "types/",
+      "tsup.*"]
   }
 )

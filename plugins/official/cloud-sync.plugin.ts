@@ -1,4 +1,4 @@
-import type { IPlugin, PluginContext } from '../../core/types'
+import type { IPlugin } from '../../core/types'
 import { isProduction } from '../../core/env'
 
 /**
@@ -155,7 +155,7 @@ export const createMongoAdapter = (apiUrl: string, apiKey: string): CloudSyncAda
 /**
  * Template for Firebase Firestore
  */
-export const createFirestoreAdapter = (db: unknown, docPath: string): CloudSyncAdapter => ({
+export const createFirestoreAdapter = (): CloudSyncAdapter => ({
   name: 'Firebase-Firestore',
   save: async (data: Record<string, unknown>) => {
     // Assuming Firebase SDK is already initialized
@@ -168,7 +168,7 @@ export const createFirestoreAdapter = (db: unknown, docPath: string): CloudSyncA
       // await updateDoc(doc(db, docPath), { ...data, updatedAt: serverTimestamp() });
       debugLog('[Mock] Firestore Syncing:', data)
       return true
-    } catch (e) {
+    } catch (_e) {
       return false
     }
   }
