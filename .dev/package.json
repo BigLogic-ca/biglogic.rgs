@@ -1,5 +1,7 @@
 {
   "name": "tools",
+  "private": true,
+  "version": "0.0.0",
   "license": "PRIVATE",
   "scripts": {
     "backup": "cd backup && backup.bat",
