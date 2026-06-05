@@ -1,0 +1,363 @@
+# Argis (RGS) - Reactive Global State
+# LLM Context File - Complete Project Overview
+
+## Project Identity
+- **Name**: Argis (RGS) - Reactive Global State
+- **Package**: @biglogic/rgs
+- **Version**: 3.9.56
+- **Description**: Enterprise-grade reactive global state management for React
+- **License**: MIT
+- **Author**: Dario Passariello
+
+## Core Value Proposition
+Simple, secure, scalable state management for React applications with:
+- Zero boilerplate (no reducers, actions, or dispatchers)
+- Full TypeScript support with type inference
+- Built-in enterprise security (RBAC, AES-256-GCM encryption, audit logging)
+- Local-first sync engine for offline-capable apps
+- Plugin system for extensibility
+
+## Project Structure
+```
+biglogic.npm.rgs/
+├── index.ts                    # Main entry point, exports all public APIs
+├── package.json                # Package configuration, dependencies
+├── core/
+│   ├── store.ts               # Core store implementation (createStore, StorageAdapters)
+│   ├── hooks.ts               # React hooks (useStore, useIsStoreReady, etc.)
+│   ├── types.ts               # TypeScript interfaces and types
+│   ├── security.ts            # RBAC, encryption, audit logging, GDPR compliance
+│   ├── persistence.ts         # Hydration, persistence, disk queue management
+│   ├── sync.ts                # Local-first sync engine
+│   ├── ssr.ts                 # SSR support (Next.js, Remix)
+│   ├── thunk.ts               # Async actions middleware
+│   ├── reactivity.ts          # Computed values, watchers
+│   ├── plugins.ts             # Plugin manager
+│   ├── utils.ts               # Deep clone, deep equality utilities
+│   ├── env.ts                 # Environment detection
+│   └── advanced.ts            # Advanced store features
+├── plugins/
+│   ├── index.ts               # Plugin barrel exports
+│   └── official/
+│       ├── undo-redo.plugin.ts
+│       ├── immer.plugin.ts
+│       ├── schema.plugin.ts
+│       ├── devtools.plugin.ts
+│       ├── snapshot.plugin.ts
+│       ├── guard.plugin.ts
+│       ├── analytics.plugin.ts
+│       ├── sync.plugin.ts
+│       ├── debug.plugin.ts
+│       ├── indexeddb.plugin.ts
+│       └── cloud-sync.plugin.ts
+└── docs/
+    └── guide/                 # Documentation files
+```
+
+## Core API Patterns
+
+### 1. Creating a Store (The Magnetar Way)
+```typescript
+import { gstate, createStore } from '@biglogic/rgs'
+
+// Primary entry point - creates store and hook together
+const store = gstate({
+  counter: 0,
+  user: { name: 'John', role: 'admin' },
+  settings: { theme: 'dark' }
+}, 'my-namespace') // namespace enables persistence
+
+// Alternative: createStore for advanced config
+const store2 = createStore({
+  namespace: 'my-app',
+  version: 1,
+  auditEnabled: true,
+  userId: 'user-123'
+})
+```
+
+### 2. React Hooks
+```typescript
+import { useStore, useIsStoreReady, initState } from '@biglogic/rgs'
+
+// Key mode - returns [value, setter] tuple
+const [count, setCount] = useStore<number>('counter')
+
+// Selector mode - returns value directly (read-only)
+const count = useStore(state => state.counter)
+
+// Check if store is ready (hydration complete)
+const isReady = useIsStoreReady()
+```
+
+### 3. Setting and Getting State
+```typescript
+// Set with Immer produce pattern
+store.set('counter', count + 1)
+
+// Set with updater function (Immer)
+store.set('user', draft => { draft.name = 'New Name' })
+
+// Get value
+const value = store.get('counter')
+
+// Remove key
+store.remove('counter')
+
+// Delete all
+store.deleteAll()
+```
+
+### 4. Computed Values
+```typescript
+// Auto-tracking computed values
+const doubled = store.compute('doubled', (get) => {
+  return get('counter') * 2
+})
+```
+
+### 5. Watching for Changes
+```typescript
+// Watch a key
+const unsubscribe = store.watch('counter', (newValue, oldValue) => {
+  console.log(`Changed: ${oldValue} -> ${newValue}`)
+})
+
+// Subscribe to all changes
+const unsubscribe = store._subscribe(() => {
+  console.log('Any state changed')
+})
+```
+
+## Enterprise Security Features
+
+### RBAC (Role-Based Access Control)
+```typescript
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ user_data: null, admin_panel: null }, {
+  userId: 'user-123',
+  accessRules: [
+    { pattern: /^admin_/, permissions: ['admin'] },
+    { pattern: /^user_/, permissions: ['read', 'write'] }
+  ]
+})
+
+// Methods available on store
+store.addAccessRule(pattern, permissions)
+store.hasPermission(key, action, userId) // 'read' | 'write' | 'delete' | 'admin'
+```
+
+### AES-256-GCM Encryption
+```typescript
+import { 
+  generateEncryptionKey, 
+  deriveKeyFromPassword,
+  encrypt, 
+  decrypt 
+} from '@biglogic/rgs'
+
+// Generate key
+const key = await generateEncryptionKey()
+
+// Encrypt before storing
+const encrypted = await encrypt(data, key)
+store.set('sensitive', encrypted, { encrypted: true })
+
+// Decrypt on retrieval
+const stored = store.get('sensitive')
+const decrypted = await decrypt(stored, key)
+```
+
+### Audit Logging
+```typescript
+import { setAuditLogger } from '@biglogic/rgs'
+
+setAuditLogger((entry) => {
+  // Send to audit service
+  console.log(`${entry.action} on ${entry.key} by ${entry.userId}: ${entry.success}`)
+})
+```
+
+### GDPR Compliance
+```typescript
+import { recordConsent, hasConsent, exportUserData, deleteUserData } from '@biglogic/rgs'
+
+// Record consent
+recordConsent(consentsMap, userId, 'analytics', true)
+
+// Check consent
+if (hasConsent(consentsMap, userId, 'analytics')) { /* proceed */ }
+
+// Export user data (Article 20)
+const userData = exportUserData(consentsMap, userId)
+
+// Delete user data (Article 17)
+deleteUserData(consentsMap, userId)
+```
+
+## Local-First Sync Engine
+
+### Configuration
+```typescript
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ data: null }, {
+  sync: {
+    endpoint: 'https://api.example.com/sync',
+    authToken: () => localStorage.getItem('token'),
+    strategy: 'last-write-wins', // or 'merge', 'server-wins', 'client-wins'
+    autoSyncInterval: 30000, // 30 seconds
+    syncOnReconnect: true
+  }
+})
+
+// Use sync methods via plugins
+await store.plugins.sync.flush()
+await store.plugins.sync.getState()
+```
+
+## Plugin System
+
+### Official Plugins
+| Plugin | Import | Purpose |
+|--------|--------|---------|
+| undoRedo | `@biglogic/rgs` | Time travel through state |
+| immer | `@biglogic/rgs` | Mutable-style updates |
+| indexedDB | `@biglogic/rgs` | GB-scale storage |
+| cloudSync | `@biglogic/rgs` | Cloud backup & sync |
+| devTools | `@biglogic/rgs` | Redux DevTools |
+| snapshot | `@biglogic/rgs` | Save/restore checkpoints |
+| schema | `@biglogic/rgs` | Runtime validation |
+| guard | `@biglogic/rgs` | Transform on set |
+| analytics | `@biglogic/rgs` | Track changes |
+| debug | `@biglogic/rgs` | Console access (DEV) |
+
+### Using Plugins
+```typescript
+import { gstate, undoRedoPlugin } from '@biglogic/rgs'
+
+const store = gstate({ count: 0 })
+store._addPlugin(undoRedoPlugin({ limit: 50 }))
+
+// Access plugin methods
+store.plugins.undoRedo.undo()
+store.plugins.undoRedo.canUndo() // boolean
+```
+
+### Custom Plugin
+```typescript
+import type { IPlugin } from '@biglogic/rgs'
+
+const myPlugin: IPlugin<MyState> = {
+  name: 'my-plugin',
+  hooks: {
+    onInit: ({ store }) => { /* init */ },
+    onSet: ({ key, value }) => { /* intercept set */ },
+    onDestroy: () => { /* cleanup */ }
+  }
+}
+```
+
+## SSR Support
+
+### Next.js Integration
+```typescript
+import { createSSRStore, useHydrated } from '@biglogic/rgs'
+
+// Server-side
+const store = createSSRStore({
+  namespace: 'my-app',
+  initialState: { user: null }
+})
+
+// Client-side
+const isHydrated = useHydrated()
+if (!isHydrated) return <Loading />
+```
+
+## Persistence Options
+
+```typescript
+const store = gstate({ data: [] }, {
+  namespace: 'my-app',
+  persistByDefault: true, // All keys persist by default
+  storage: localStorage, // or custom storage adapter
+  migrate: (oldState, oldVersion) => { /* migration logic */ }
+})
+
+// Per-key persistence override
+store.set('temp', value, { persist: false })
+```
+
+## TypeScript Types
+
+### StoreConfig
+```typescript
+interface StoreConfig<S> {
+  namespace?: string           // Storage prefix
+  version?: number             // Schema version for migrations
+  silent?: boolean             // Suppress warnings
+  debounceTime?: number        // Disk flush delay (default: 150ms)
+  storage?: CustomStorage      // Storage adapter
+  migrate?: (oldState, oldVersion) => S
+  persistByDefault?: boolean   // Auto-persist all keys
+  maxObjectSize?: number       // Size limit warning (bytes)
+  maxTotalSize?: number        // Total store size limit
+  encryptionKey?: EncryptionKey
+  auditEnabled?: boolean       // Enable audit logging
+  userId?: string              // For audit/RBAC
+  validateInput?: boolean      // XSS prevention
+  accessRules?: Array<{ pattern: string | Function, permissions: Permission[] }>
+  immer?: boolean              // Enable Immer (default: true)
+  sync?: SyncConfig            // Enable sync engine
+}
+```
+
+## Error Handling
+
+```typescript
+const store = gstate({}, {
+  onError: (error, context) => {
+    console.error(`[${context.operation}] Error:`, error)
+  }
+})
+```
+
+## Performance Considerations
+
+1. **Immer**: Enabled by default for immutable updates. Disable for high-frequency updates.
+2. **Debouncing**: Disk writes are debounced (default 150ms) to reduce I/O.
+3. **Memory**: Use `maxTotalSize` to prevent memory bloat.
+4. **Computed Values**: Automatically tracked and updated reactively.
+5. **Subscriptions**: Use key-specific subscriptions for granular updates.
+
+## Security Considerations
+
+1. **Never store encryption keys in client code**
+2. **Use httpOnly cookies for token storage**
+3. **Enable RBAC for sensitive state**
+4. **Configure audit logging for compliance**
+5. **Sanitize all user inputs**
+6. **Use HTTPS in production**
+
+## Common Issues & Solutions
+
+### "No store initialized" warning
+Call `initState()` before using `useStore()` or pass store instance explicitly.
+
+### Hydration mismatch
+Use `createSSRStore()` for SSR or ensure consistent initial state.
+
+### Memory leaks
+Call `store.destroy()` or `destroyState(namespace)` when unmounting.
+
+## Dependencies
+- immer: Immutable state updates
+- react: Peer dependency (>=16.8.0)
+- TypeScript: >=4.0 (dev)
+
+## Related Projects
+- **Extension**: VS Code extension at `extension/vscode/`
+- **Tests**: Located in `tests/` workspace
+- **Enterprise Presentation**: See `.project/Enterprise_Presentation_RGS.md`
