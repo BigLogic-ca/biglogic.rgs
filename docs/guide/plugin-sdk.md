@@ -4,25 +4,24 @@ Complete guide to creating custom plugins for RGS.
 
 ## Plugin Interface
 
-Every RGS plugin must implement the `Plugin` interface:
+Every RGS plugin must implement the `IPlugin` interface:
 
 ```typescript
-interface Plugin {
-  name: string;
-  version?: string;
-  
-  // Lifecycle hooks
-  onInstall?: (context: PluginContext) => void | Promise<void>;
-  onUninstall?: (context: PluginContext) => void | Promise<void>;
-  
-  // State hooks
-  beforeSet?: (key: string, value: any, context: PluginContext) => any | Promise<any>;
-  afterSet?: (key: string, value: any, context: PluginContext) => void | Promise<void>;
-  beforeGet?: (key: string, context: PluginContext) => void | Promise<void>;
-  afterGet?: (key: string, value: any, context: PluginContext) => void | Promise<void>;
-  
-  // Error handling
-  onError?: (error: Error, context: PluginContext) => void;
+import type { IPlugin } from '@biglogic/rgs'
+
+interface IPlugin<S extends Record<string, unknown>> {
+  name: string
+  hooks: {
+    onInit?: (context: PluginContext<S>) => void | Promise<void>
+    onInstall?: (context: PluginContext<S>) => void | Promise<void>
+    onSet?: (context: PluginContext<S>) => void | Promise<void>
+    onGet?: (context: PluginContext<S>) => void | Promise<void>
+    onRemove?: (context: PluginContext<S>) => void | Promise<void>
+    onDestroy?: (context: PluginContext<S>) => void | Promise<void>
+    onTransaction?: (context: PluginContext<S>) => void | Promise<void>
+    onBeforeSet?: (context: PluginContext<S>) => void | Promise<void>
+    onAfterSet?: (context: PluginContext<S>) => void | Promise<void>
+  }
 }
 ```
 
@@ -31,33 +30,29 @@ interface Plugin {
 ### Logger Plugin Example
 
 ```typescript
-import { Plugin, PluginContext } from '@biglogic/rgs';
+import type { IPlugin } from '@biglogic/rgs'
 
-const loggerPlugin: Plugin = {
+const loggerPlugin: IPlugin = {
   name: 'logger',
-  version: '1.0.0',
   
-  onInstall: (context: PluginContext) => {
-    console.log(`[${context.namespace}] Logger plugin installed`);
-  },
-  
-  beforeSet: (key: string, value: any, context: PluginContext) => {
-    console.log(`[${context.namespace}] Setting ${key} to:`, value);
-    return value; // Return (possibly modified) value
-  },
-  
-  afterSet: (key: string, value: any, context: PluginContext) => {
-    console.log(`[${context.namespace}] Set ${key} complete`);
-  },
-  
-  beforeGet: (key: string, context: PluginContext) => {
-    console.log(`[${context.namespace}] Getting ${key}`);
+  hooks: {
+    onInstall: ({ store }) => {
+      console.log('[Logger] Plugin installed')
+    },
+    
+    onSet: ({ key, value }) => {
+      console.log(`[Logger] Setting ${key} to:`, value)
+    },
+    
+    onRemove: ({ key }) => {
+      console.log(`[Logger] Removing ${key}`)
+    }
   }
-};
+}
 
 // Install the plugin
-import { installPlugin } from '@biglogic/rgs';
-installPlugin(loggerPlugin);
+const store = gstate({ data: null })
+store._addPlugin(loggerPlugin)
 ```
 
 ## Advanced Plugin: Analytics Tracker
@@ -65,28 +60,32 @@ installPlugin(loggerPlugin);
 Track state changes for analytics purposes:
 
 ```typescript
-const analyticsPlugin: Plugin = {
+import type { IPlugin } from '@biglogic/rgs'
+
+const analyticsPlugin: IPlugin = {
   name: 'analytics',
-  version: '2.0.0',
   
-  afterSet: async (key: string, value: any, context) => {
-    // Send analytics data
-    try {
-      await fetch('/api/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          event: 'state_update',
-          key,
-          namespace: context.namespace,
-          timestamp: Date.now()
+  hooks: {
+    onSet: async ({ key, value, store }) => {
+      // Send analytics data
+      try {
+        await fetch('/api/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'state_update',
+            key,
+            value,
+            namespace: store.namespace,
+            timestamp: Date.now()
+          })
         })
-      });
-    } catch (error) {
-      console.error('Analytics send failed:', error);
+      } catch (error) {
+        console.error('Analytics send failed:', error)
+      }
     }
   }
-};
+}
 ```
 
 ## Plugin Context
@@ -94,126 +93,110 @@ const analyticsPlugin: Plugin = {
 The `PluginContext` provides useful information:
 
 ```typescript
-interface PluginContext {
-  namespace: string;      // Current namespace
-  store: IStore;         // Store instance
-  userId?: string;       // Current user (if set)
-  metadata?: Record<string, any>; // Custom metadata
+interface PluginContext<S extends Record<string, unknown>> {
+  store: IStore<S>       // Store instance
+  key?: string           // Key being accessed (if applicable)
+  value?: unknown        // Value being set (if applicable)
+  version?: number       // Version number
 }
 ```
 
-## Official Plugins
+## Official Plugins Reference
 
-### IndexedDB Plugin
+### Undo/Redo Plugin
 
 ```typescript
-import { indexedDBPlugin } from '@biglogic/rgs/plugins';
+import { undoRedoPlugin } from '@biglogic/rgs'
 
-const plugin = indexedDBPlugin({
-  dbName: 'my-app-db',
-  version: 1,
-  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-});
+const store = gstate({ counter: 0 })
+store._addPlugin(undoRedoPlugin({ limit: 50 }))
+
+// Access methods
+store.plugins.undoRedo.undo()
+store.plugins.undoRedo.canUndo() // boolean
 ```
 
 ### Cloud Sync Plugin
 
 ```typescript
-import { cloudSyncPlugin } from '@biglogic/rgs/plugins';
+import { cloudSyncPlugin, createMongoAdapter } from '@biglogic/rgs'
 
-const plugin = cloudSyncPlugin({
-  endpoint: 'https://api.example.com/sync',
-  interval: 5 * 60 * 1000, // 5 minutes
-  headers: {
-    'Authorization': `Bearer ${token}`
-  },
-  onSync: (changes) => console.log('Synced:', changes),
-  onError: (error) => console.error('Sync failed:', error)
-});
+const store = gstate({ documents: [] })
+const adapter = createMongoAdapter('https://api.example.com', 'api-key')
+
+store._addPlugin(cloudSyncPlugin({
+  adapter,
+  autoSyncInterval: 30000
+}))
+
+// Access methods
+await store.plugins.cloudSync.sync()
+const stats = store.plugins.cloudSync.getStats()
 ```
 
 ### Schema Validation Plugin
 
-Never trust data coming back from the server or saved in the browser 6 months ago. Use the **SchemaPlugin**.
-
 ```typescript
-import { schemaPlugin } from '@biglogic/rgs/plugins';
-import { z } from 'zod'; // Recommended!
+import { schemaPlugin } from '@biglogic/rgs'
+import { z } from 'zod'
 
-const plugin = schemaPlugin({
+const store = gstate({
+  price: 0,
+  email: ''
+})
+
+store._addPlugin(schemaPlugin({
   price: z.number().positive(),
-  email: z.string().email(),
-  user: z.object({
-    name: z.string(),
-    age: z.number().min(18)
-  })
-});
+  email: z.string().email()
+}))
 
-// If anyone tries to setState('price', -50), RGS will block the operation
+// Invalid values will throw errors
+store.set('price', -50) // Error: Validation failed
 ```
 
-### Persistence Plugin
-
-Custom persistence behavior:
+### IndexedDB Plugin
 
 ```typescript
-import { persistencePlugin } from '@biglogic/rgs/plugins';
+import { indexedDBPlugin } from '@biglogic/rgs'
 
-const plugin = persistencePlugin({
-  storage: localStorage,
-  debounceMs: 300,
-  exclude: ['temporary', 'cache_*'], // Exclude these keys
-  include: ['user', 'settings'] // Only persist these (if specified)
-});
+const store = gstate({ largeData: [] })
+store._addPlugin(indexedDBPlugin({
+  dbName: 'my-app-db',
+  storeName: 'states',
+  version: 1
+}))
 ```
 
-## Plugin Installation
+## Registering Custom Methods
 
-### Global Installation
-
-```typescript
-import { installPlugin } from '@biglogic/rgs';
-
-installPlugin(myPlugin);
-```
-
-### Per-Store Installation
+Plugins can register custom methods on the store:
 
 ```typescript
-import { gstate } from '@biglogic/rgs';
+import type { IPlugin } from '@biglogic/rgs'
 
-const useStore = gstate(
-  { counter: 0 },
-  {
-    plugins: [myPlugin, anotherPlugin]
+const myPlugin: IPlugin = {
+  name: 'my-plugin',
+  
+  hooks: {
+    onInstall: ({ store }) => {
+      store._registerMethod('myPlugin', 'customAction', () => {
+        console.log('Custom action executed!')
+      })
+    }
   }
-);
+}
+
+// Usage
+store._addPlugin(myPlugin)
+store.plugins.myPlugin.customAction()
 ```
 
 ## Plugin Best Practices
 
 1. **Unique Names**: Always give your plugin a unique name
-2. **Version Control**: Include version for compatibility tracking
-3. **Error Handling**: Handle errors gracefully in plugin hooks
-4. **Async Support**: Use async/await for asynchronous operations
-5. **Return Values**: `beforeSet` must return a value (possibly modified)
-6. **Cleanup**: Implement `onUninstall` for cleanup if needed
-
-## Publishing Your Plugin
-
-If you create a useful plugin, consider publishing it:
-
-```bash
-# Create package
-npm init @biglogic/rgs-plugin-myplugin
-
-# Install dependencies
-npm install @biglogic/rgs
-
-# Build and publish
-npm run build
-npm publish
-```
+2. **Error Handling**: Handle errors gracefully in plugin hooks
+3. **Cleanup**: Implement `onDestroy` for cleanup if needed
+4. **TypeScript**: Use generics for type safety with store state
 
 ## Next Steps
 
