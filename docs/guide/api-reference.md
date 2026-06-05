@@ -2,199 +2,282 @@
 
 Complete reference for all RGS hooks and functions.
 
-## Hooks
+## Store Creation
 
-### `useStore<T>(key: string, options?: StoreOptions): [T, (value: T) => void]`
+### `gstate<S>(initialState, config?)`
 
-Primary hook for reading and writing state.
+Creates a store and returns a typed hook simultaneously - "The Magnetar Way".
 
-**Parameters:**
-- `key` (string): State key to subscribe to
-- `options` (StoreOptions, optional):
-  - `namespace` (string): Custom namespace
-  - `selector` (function): Transform state before returning
-  - `equalityFn` (function): Custom equality comparison
-
-**Returns:** Tuple of `[currentValue, setterFunction]`
-
-**Example:**
 ```typescript
-// Basic usage
-const [value, setValue] = useStore<T>('key')
+import { gstate } from '@biglogic/rgs'
 
-// With options
-const [value, setValue] = useStore<T>('key', {
-  namespace: 'my-app',       // Custom namespace
-  selector: (state) => state, // Transform state
-  equalityFn: (a, b) => a === b // Custom equality check
+// Create store with hook
+const useStore = gstate({
+  counter: 0,
+  user: { name: 'John' }
+}, 'my-namespace') // namespace enables persistence
+
+// Use the hook
+const [count, setCount] = useStore<number>('counter')
+const [user] = useStore('user')
+```
+
+### `createStore(config?)`
+
+Creates a store instance for advanced configuration.
+
+```typescript
+import { createStore } from '@biglogic/rgs'
+
+const store = createStore({
+  namespace: 'my-app',
+  version: 1,
+  auditEnabled: true,
+  userId: 'user-123'
+})
+
+store.set('key', 'value')
+```
+
+## React Hooks
+
+### `useStore<T>(key: string)`
+
+Primary hook for reading and writing state. Returns `[value, setter]` tuple.
+
+```typescript
+import { useStore } from '@biglogic/rgs'
+
+// Key mode - returns [value, setter]
+const [count, setCount] = useStore<number>('counter')
+
+// Update state
+setCount(count + 1)
+
+// Selector mode - returns value directly (read-only)
+const count = useStore(state => state.counter)
+```
+
+### `useSyncedState(key, store?)`
+
+Hook for offline-first synchronized state management.
+
+```typescript
+import { useSyncedState } from '@biglogic/rgs'
+
+const [data, setData, syncState] = useSyncedState('data')
+
+// syncState contains: isOnline, isSyncing, pendingChanges, conflicts
+```
+
+### `useIsStoreReady(store?)`
+
+Check if the store has finished hydration.
+
+```typescript
+import { useIsStoreReady } from '@biglogic/rgs'
+
+const isReady = useIsStoreReady()
+```
+
+## Store Methods
+
+### `store.get<T>(key: string): T | null`
+
+Get state value by key.
+
+```typescript
+const value = store.get('counter')
+const user = store.get<User>('user')
+```
+
+### `store.set<T>(key: string, value: T | StateUpdater<T>, options?): boolean`
+
+Set state value. Returns `true` if value changed.
+
+```typescript
+// Direct value
+store.set('counter', 10)
+
+// Updater function (Immer)
+store.set('user', draft => { draft.name = 'Alice' })
+
+// With persistence options
+store.set('temp', value, { persist: false })
+```
+
+### `store.compute<T>(key: string, selector: ComputedSelector<T>): T`
+
+Create computed/derived state.
+
+```typescript
+store.compute('fullName', (get) => {
+  return `${get('firstName')} ${get('lastName')}`
+})
+
+const fullName = store.get('fullName')
+```
+
+### `store.watch(key: string, callback: WatcherCallback<T>): () => void`
+
+Subscribe to state changes for a specific key.
+
+```typescript
+const unsubscribe = store.watch('counter', (newValue) => {
+  console.log('Counter changed:', newValue)
+})
+
+// Stop watching
+unsubscribe()
+```
+
+### `store.transaction(fn: () => void): void`
+
+Batch multiple updates into a single re-render.
+
+```typescript
+store.transaction(() => {
+  store.set('a', 1)
+  store.set('b', 2)
+  store.set('c', 3)
 })
 ```
 
-### `useComputed<T>(keys: string[], computeFn: (...args) => T): T`
-
-Hook for computed values derived from multiple state keys.
-
-**Parameters:**
-- `keys` (string[]): State keys to watch
-- `computeFn` (function): Function to compute derived value
-
-**Returns:** Computed value
-
-**Example:**
-```typescript
-const total = useComputed(
-  ['price', 'quantity'],
-  (price, quantity) => price * quantity
-)
-```
-
-### `useSelector<T>(selector: (state) => T): T`
-
-Hook for selecting and transforming state.
-
-**Parameters:**
-- `selector` (function): Selector function
-
-**Returns:** Selected value
-
-**Example:**
-```typescript
-const userName = useSelector((state) => state.user?.name ?? 'Guest')
-```
-
-## Store Functions
-
-### `getState<T>(key: string, options?: GetOptions): T`
-
-Read state without subscribing to changes.
-
-**Parameters:**
-- `key` (string): State key
-- `options` (GetOptions, optional):
-  - `namespace` (string): Custom namespace
-
-**Returns:** Current state value
-
-**Example:**
-```typescript
-const currentUser = getState<User>('user')
-const theme = getState<string>('settings.theme', { namespace: 'prefs' })
-```
-
-### `setState<T>(key: string, value: T, options?: SetOptions): void`
-
-Update state without using hook.
-
-**Parameters:**
-- `key` (string): State key
-- `value` (T): New value
-- `options` (SetOptions, optional):
-  - `namespace` (string): Custom namespace
-
-**Example:**
-```typescript
-setState('counter', 100)
-setState('user', { name: 'Alice' }, { namespace: 'auth' })
-
-// With transaction for batch updates
-transaction(() => {
-  setState('a', 1)
-  setState('b', 2)
-  setState('c', 3)
-})
-```
-
-### `watch(key: string | string[], callback: (value, oldValue?) => void): () => void`
-
-Subscribe to state changes.
-
-**Parameters:**
-- `key` (string | string[]): Key(s) to watch
-- `callback` (function): Called when state changes
-
-**Returns:** Unsubscribe function
-
-**Example:**
-```typescript
-const unwatch = watch('counter', (newVal, oldVal) => {
-  console.log(`Changed from ${oldVal} to ${newVal}`)
-})
-
-// Later...
-unwatch()
-```
-
-### `computed(baseKey: string, computeFn: (value) => any): void`
-
-Create a computed value that auto-updates.
-
-**Parameters:**
-- `baseKey` (string): Base state key
-- `computeFn` (function): Computation function
-
-**Example:**
-```typescript
-computed('price', (price) => price * 1.2) // Add tax
-computed('items', (items) => items.filter(i => i.active)) // Active items
-```
-
-### `transaction(fn: () => void): void`
-
-Execute multiple state updates as a single atomic operation.
-
-**Parameters:**
-- `fn` (function): Function containing state updates
-
-**Example:**
-```typescript
-transaction(() => {
-  setState('user', { name: 'Bob', role: 'admin' })
-  setState('permissions', ['read', 'write', 'delete'])
-  setState('lastLogin', Date.now())
-})
-// Components re-render once after transaction completes
-```
-
-## Utility Functions
-
-### `initState(initialState?, config?): Store`
-
-Initialize the store with optional initial state and configuration.
-
-### `persist(key: string, storage?): void`
-
-Manually persist state to storage.
-
-### `hydrate(key: string, storage?): void`
-
-Manually hydrate state from storage.
-
-### `destroy(key: string): void`
+### `store.remove(key: string): boolean` / `store.delete(key: string): boolean`
 
 Remove a key from state.
 
-### `clearNamespace(namespace: string): void`
+```typescript
+store.remove('counter')
+```
 
-Clear all state in a namespace.
+### `store.deleteAll(): boolean`
 
-## TypeScript Generics
-
-All hooks and functions support TypeScript generics for type safety:
+Clear all state.
 
 ```typescript
-// Typed useStore
-const [counter, setCounter] = useStore<number>('counter')
-const [user, setUser] = useStore<User>('user')
+store.deleteAll()
+```
 
-// Typed getState
-const user = getState<User>('user')
+## Plugin Methods
 
-// Typed computed
-const doubled = computed('counter', (count: number) => count * 2)
+### `store._addPlugin(plugin: IPlugin): void`
+
+Install a plugin.
+
+```typescript
+import { undoRedoPlugin } from '@biglogic/rgs'
+
+store._addPlugin(undoRedoPlugin({ limit: 50 }))
+```
+
+### `store._registerMethod(pluginName, methodName, fn)`
+
+Register custom plugin methods.
+
+```typescript
+store._registerMethod('myPlugin', 'customMethod', () => { /* ... */ })
+```
+
+## Security Methods
+
+### `store.addAccessRule(pattern, permissions): void`
+
+Add RBAC rule.
+
+```typescript
+store.addAccessRule(/^admin_/, ['admin'])
+store.addAccessRule(/^user_/, ['read', 'write'])
+```
+
+### `store.hasPermission(key, action, userId?): boolean`
+
+Check if user has permission.
+
+```typescript
+if (store.hasPermission('admin_panel', 'write', 'user-123')) {
+  store.set('admin_panel', data)
+}
+```
+
+### `store.recordConsent(userId, purpose, granted): ConsentRecord`
+
+Record GDPR consent.
+
+```typescript
+store.recordConsent('user-123', 'analytics', true)
+```
+
+### `store.exportUserData(userId)` / `store.deleteUserData(userId)`
+
+GDPR compliance methods.
+
+## Utility Functions
+
+### `initState(config?)` / `destroyState(namespace?)`
+
+Global store management.
+
+```typescript
+import { initState, destroyState, destroyAllStores } from '@biglogic/rgs'
+
+// Initialize default store
+initState({ namespace: 'app' })
+
+// Destroy specific store
+destroyState('app')
+
+// Destroy all stores
+destroyAllStores()
+```
+
+### `getStore()` / `getStoreByNamespace(namespace)`
+
+Get store instances.
+
+```typescript
+const store = getStore()
+const appStore = getStoreByNamespace('app')
+```
+
+## TypeScript Types
+
+```typescript
+interface StoreConfig<S> {
+  namespace?: string
+  version?: number
+  silent?: boolean
+  debounceTime?: number
+  storage?: Storage
+  migrate?: (oldState: Record, oldVersion: number) => S
+  persistByDefault?: boolean
+  maxObjectSize?: number
+  maxTotalSize?: number
+  encryptionKey?: EncryptionKey
+  auditEnabled?: boolean
+  userId?: string
+  validateInput?: boolean
+  accessRules?: Array<{ pattern: string | Function, permissions: Permission[] }>
+  immer?: boolean
+  sync?: SyncConfig
+}
+
+interface IStore<S> {
+  set<K extends keyof S>(key: K, val: S[K], options?: PersistOptions): boolean
+  get<K extends keyof S>(key: K): S[K] | null
+  compute<T>(key: string, selector: ComputedSelector<T>): T
+  watch<K extends keyof S>(key: K, callback: WatcherCallback<S[K]>): () => void
+  remove(key: keyof S | string): boolean
+  deleteAll(): boolean
+  list(): Record<string, unknown>
+  transaction(fn: () => void): void
+  destroy(): void
+  _subscribe(cb: StoreSubscriber, key?: string): () => void
+}
 ```
 
 ## Next Steps
 
+- [Core Concepts](core-concepts.md) - Understanding the fundamentals
 - [Advanced Usage](advanced-usage.md) - Transactions, plugins, persistence
 - [Security Features](security-features.md) - Enterprise security
-- [Testing](testing.md) - Testing strategies
