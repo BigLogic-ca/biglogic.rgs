@@ -9,6 +9,11 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19+-61DAFB.svg)](https://react.dev/)
 
+[![Powered by Immer](https://img.shields.io/badge/Powered%20by-Immer-2ECC71.svg)](https://github.com/immerjs/immer)
+[![Typed with TypeScript](https://img.shields.io/badge/Typed%20with-TypeScript-3178C6.svg)](https://www.typescriptlang.org/)
+[![Tested with Jest](https://img.shields.io/badge/Tested%20with-Jest-C21325.svg)](https://jestjs.io/)
+[![E2E with Playwright](https://img.shields.io/badge/E2E%20with-Playwright-2ECC71.svg)](https://playwright.dev/)
+
 > **🔐 Security Compliance**: This project is fully compliant with **NIST SP 800-132** standards for password-based key derivation, featuring AES-256-GCM encryption, PBKDF2 with 600k iterations, and 32-byte salts.
 
 ---
@@ -39,9 +44,26 @@ useUser(s => {
 
 ---
 
-## 🎯 Why Developers Are **Obsessed** With ARGIS (RGS)
+## 🚀 Installation
 
-| Feature | Other Libraries | ARGIS (RGS) |
+```bash
+# The fastest way to upgrade your React app
+npm install @biglogic/rgs
+```
+
+```bash
+# Or with pnpm
+pnpm add @biglogic/rgs
+
+# Or with yarn
+yarn add @biglogic/rgs
+```
+
+---
+
+## 🎯 Why ARGIS (RGS)
+
+| Feature | Other Libraries | 🔥 ARGIS (RGS) |
 |---------|----------------|--------------|
 | **API Complexity** | 10+ functions, providers, reducers | **1 function** - `gstate()` |
 | **Immutability** | Manual spreads, Redux boilerplate | **Automatic** - Powered by Immer |
@@ -73,23 +95,6 @@ Most libraries make you **choose** between:
 | **Local-First Sync** | ✅ **Built-in** | ❌ | ❌ | ❌ | ❌ |
 
 > **RGS is the ONLY library treating Security and Persistence as first-class citizens.**
-
----
-
-## 🚀 Installation
-
-```bash
-# The fastest way to upgrade your React app
-npm install @biglogic/rgs
-```
-
-```bash
-# Or with pnpm
-pnpm add @biglogic/rgs
-
-# Or with yarn
-yarn add @biglogic/rgs
-```
 
 ---
 
@@ -344,27 +349,6 @@ const store = gstate({ data: {} }, {
 })
 ```
 
----
-
-## 📦 Build Sizes
-
-### Full Version (~80 KB minified)
-For production React apps with all features:
-
-```javascript
-import { gstate, createStore } from '@biglogic/rgs'
-
-const useCounter = gstate({ count: 0 })
-const count = useCounter(s => s.count)
-```
-
-| Version | Size | Use Case |
-|---------|------|----------|
-| **ESM** | ~80 KB | Modern bundlers (Vite, esbuild) |
-| **CJS** | ~81 KB | Node.js, legacy bundlers |
-
----
-
 ## 🧪 Testing - Rock-Solid Reliability
 
 ```bash
@@ -481,27 +465,6 @@ JavaScript (.js, .jsx)
 - [API Reference](markdown/api.md)
 - [Migration Guide](markdown/migration-guide.md)
 
-### Support
-
-- [FAQ](markdown/faq.md)
-- [Case Studies](markdown/case-studies.md)
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
-
-```bash
-# Clone and setup
-git clone https://github.com/picla-net/picla.npm.rgs.git
-cd rgs
-npm install
-
-# Run tests
-npm run test
-```
-
 ---
 
 ## 📄 License
@@ -509,33 +472,6 @@ npm run test
 **MIT** © [Dario Passariello](https://github.com/passariello)
 
 ---
-
-## 🆕 What's New in v3.9.20
-
-### Store Registry & HMR Safety
-- `gstate()` now auto-registers stores for proper HMR cleanup
-- New `registerStore()` / `unregisterStore()` APIs
-- New `destroyAllStores()` for complete cleanup
-- `destroyState(namespace?)` for targeted cleanup
-
-### SSR Improvements
-- `safeBtoa()` / `safeAtob()` with Node.js Buffer fallback
-- `getServerSnapshot()` uses safe Proxy for selectors
-- No more crashes when selectors access nested properties on empty state
-
-### Developer Experience
-- `isEqual()` now supports Date, Map, Set, RegExp, TypedArray, ArrayBuffer
-- `initState()` warnings only in development mode
-- `useSyncedState()` warns if `initSync()` not called
-
----
-
-## 🔥 Built for Those Who Demand **Excellence**
-
-[![Powered by Immer](https://img.shields.io/badge/Powered%20by-Immer-2ECC71.svg)](https://github.com/immerjs/immer)
-[![Typed with TypeScript](https://img.shields.io/badge/Typed%20with-TypeScript-3178C6.svg)](https://www.typescriptlang.org/)
-[![Tested with Jest](https://img.shields.io/badge/Tested%20with-Jest-C21325.svg)](https://jestjs.io/)
-[![E2E with Playwright](https://img.shields.io/badge/E2E%20with-Playwright-2ECC71.svg)](https://playwright.dev/)
 
 **Made with ❤️ and a lot of caffè espresso!**
 
