@@ -43,12 +43,9 @@ store.plugins.undoRedo.redo()
 store.plugins.undoRedo.canUndo() // boolean
 store.plugins.undoRedo.canRedo() // boolean
 
-// Cloud Sync
-await store.plugins.cloudSync.sync()
-const stats = store.plugins.cloudSync.getStats()
-
-// IndexedDB
-store.plugins.indexedDB.clear()
+// Cloud Sync (requires cloudSyncPlugin with adapter)
+// await store.plugins.cloudSync.sync()
+// const stats = store.plugins.cloudSync.getStats()
 ```
 
 ## Plugin Configuration
@@ -64,12 +61,6 @@ store._addPlugin(indexedDBPlugin({
   dbName: 'my-app-db',
   storeName: 'states',
   version: 1
-}))
-
-// Cloud Sync with auto-sync
-store._addPlugin(cloudSyncPlugin({
-  adapter: createMongoAdapter(url, key),
-  autoSyncInterval: 30000 // 30 seconds
 }))
 ```
 
