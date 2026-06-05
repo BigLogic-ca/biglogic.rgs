@@ -246,8 +246,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./tsconfig.json",
     "watch": "tsc -watch -p ./tsconfig.json",
-    "build-dist": "vsce package --no-dependencies -o ../dist/rgs.vsix",
-    "package": "vsce package --no-dependencies -o rgs.vsix"
+    "build-dist": "vsce package --no-dependencies -o ../../dist/rgs.vsix",
+    "package": "vsce package --no-dependencies -o ../../dist/rgs.vsix"
   },
   "devDependencies": {
     "@types/node": "25.9.1",
