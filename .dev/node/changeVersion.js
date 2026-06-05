@@ -39,6 +39,7 @@ const
 
 if (versionArg) {
   updatePackageVersion(versionArg, path.join(process.cwd(), `../../package.json`))
+  updatePackageVersion(versionArg, path.join(process.cwd(), `../../tests/package.json`))
   updatePackageVersion(versionArg, path.join(process.cwd(), `../../extension/vscode/package.json`))
 } else {
   console.debug('---> Please provide a new version number as an argument (e.g., 1.2.3)')
