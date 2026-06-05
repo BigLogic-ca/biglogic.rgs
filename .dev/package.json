@@ -1,5 +1,6 @@
 {
   "name": "tools",
+  "license": "PRIVATE",
   "scripts": {
     "backup": "cd backup && backup.bat",
     "update": "cd node && node npmUpdate.js",
