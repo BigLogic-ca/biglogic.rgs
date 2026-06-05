@@ -2,6 +2,7 @@
   "name": "tests",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "lint": "cd .. && eslint --config tests/eslint/eslint.config.mjs .",
     "lint:fix": "cd .. && eslint --config tests/eslint/eslint.config.mjs . --fix",
