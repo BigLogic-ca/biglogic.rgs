@@ -4,10 +4,10 @@
   "displayName": "RGS (Argis) State Management + IntelliSense",
   "description": "Management, complete IntelliSense, autocomplete, diagnostics and State Explorer for RGS state management library. Built by BigLogic.ca with ❤️",
   "icon": "media/icon.png",
-  "copiright": "Dario Passariello",
+  "copyright": "Dario Passariello",
   "version": "2.1.1",
   "license": "MIT",
-  "publisher": "biglogic",
+  "publisher": "Biglogic-Inc",
   "author": {
     "name": "Dario Passariello",
     "email": "dariopassariello@gmail.com",
@@ -15,7 +15,7 @@
   },
   "contributors": [
     {
-      "name": "bigLogic",
+      "name": "Biglogic Inc.",
       "url": "https://biglogic.ca"
     }
   ],
@@ -246,8 +246,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./tsconfig.json",
     "watch": "tsc -watch -p ./tsconfig.json",
-    "build-dist": "vsce package -o ../dist/rgs.vsix",
-    "package": "vsce package -o rgs.vsix"
+    "build-dist": "vsce package --no-dependencies -o ../dist/rgs.vsix",
+    "package": "vsce package --no-dependencies -o rgs.vsix"
   },
   "devDependencies": {
     "@types/node": "25.9.1",
