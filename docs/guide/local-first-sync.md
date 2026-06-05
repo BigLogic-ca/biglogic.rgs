@@ -15,16 +15,18 @@ RGS supports advanced storage scenarios beyond basic localStorage, enabling loca
 For applications that need to store massive amounts of data (gigabytes), standard `localStorage` is not enough. RGS provides the official IndexedDB plugin:
 
 ```typescript
-import { initState } from '@biglogic/rgs';
-import { indexedDBPlugin } from '@biglogic/rgs/plugins';
+import { gstate } from '@biglogic/rgs'
+import { indexedDBPlugin } from '@biglogic/rgs'
 
-const store = initState(
+const store = gstate(
   { logs: [], auditTrail: [] },
   {
-    namespace: 'audit-logs',
-    plugins: [indexedDBPlugin({ maxAge: 30 * 24 * 60 * 60 * 1000 })] // 30 days
+    namespace: 'audit-logs'
   }
-);
+)
+
+// Add IndexedDB plugin for large data storage
+store._addPlugin(indexedDBPlugin({ dbName: 'audit-logs-db' }))
 ```
 
 ### Benefits of IndexedDB
@@ -45,23 +47,28 @@ RGS allows you to combine local power with cloud safety. You can store your acti
 - **Diagnostics**: Track how much data you are syncing and detect errors before they reach the user.
 
 ```typescript
-import { gstate } from '@biglogic/rgs';
-import { cloudSyncPlugin } from '@biglogic/rgs/plugins';
+import { gstate } from '@biglogic/rgs'
+import { cloudSyncPlugin, createMongoAdapter } from '@biglogic/rgs'
 
-const useStore = gstate(
+const store = gstate(
   { documents: [], settings: {} },
   {
-    namespace: 'my-app',
-    plugins: [
-      cloudSyncPlugin({
-        endpoint: 'https://api.example.com/sync',
-        interval: 5 * 60 * 1000, // Sync every 5 minutes
-        onSync: (changes) => console.log('Synced:', changes),
-        onError: (error) => console.error('Sync failed:', error)
-      })
-    ]
+    namespace: 'my-app'
   }
-);
+)
+
+// Create adapter for your backend
+const adapter = createMongoAdapter('https://api.example.com', 'your-api-key')
+
+// Add cloud sync plugin
+store._addPlugin(cloudSyncPlugin({
+  adapter,
+  autoSyncInterval: 5 * 60 * 1000 // Sync every 5 minutes
+}))
+
+// Manual sync when needed
+await store.plugins.cloudSync.sync()
+const stats = store.plugins.cloudSync.getStats()
 ```
 
 ## Hybrid Persistence: The "Cloud-Cloud" Strategy
@@ -97,27 +104,54 @@ sequenceDiagram
 Build applications that work offline and sync when connection is restored:
 
 ```typescript
-import { initState, watch } from '@biglogic/rgs';
-import { indexedDBPlugin, cloudSyncPlugin } from '@biglogic/rgs/plugins';
+import { gstate } from '@biglogic/rgs'
+import { indexedDBPlugin, cloudSyncPlugin } from '@biglogic/rgs'
 
-initState(
-  { todos: [], status: 'offline' },
-  {
-    plugins: [
-      indexedDBPlugin(),
-      cloudSyncPlugin({
-        endpoint: '/api/sync',
-        onOnline: () => setState('status', 'online'),
-        onOffline: () => setState('status', 'offline')
-      })
-    ]
+const store = gstate({ todos: [], status: 'offline' }, {
+  namespace: 'todo-app'
+})
+
+// Add plugins
+store._addPlugin(indexedDBPlugin())
+store._addPlugin(cloudSyncPlugin({
+  adapter: createMongoAdapter('/api/sync', 'token'),
+  autoSyncInterval: 30000
+}))
+
+// Use sync state hook
+const [todos] = useSyncedState('todos')
+const [status, setStatus] = useStore('status')
+```
+
+## Local-First Sync Engine
+
+RGS includes a built-in sync engine for offline-by-default applications:
+
+```typescript
+import { gstate, initSync, useSyncedState } from '@biglogic/rgs'
+
+const store = gstate({ data: null }, {
+  namespace: 'my-app',
+  sync: {
+    endpoint: 'https://api.example.com/sync',
+    authToken: () => localStorage.getItem('auth_token'),
+    autoSyncInterval: 30000,
+    syncOnReconnect: true,
+    strategy: 'last-write-wins'
   }
-);
+})
 
-// Watch for online/offline status
-watch('status', (status) => {
-  console.log(`App is now: ${status}`);
-});
+// useSyncedState provides offline-first state management
+function MyComponent() {
+  const [data, setData, syncState] = useSyncedState('data')
+  
+  return (
+    <div>
+      <p>Status: {syncState.isOnline ? 'Online' : 'Offline'}</p>
+      <p>Pending: {syncState.pendingChanges}</p>
+    </div>
+  )
+}
 ```
 
 ## Next Steps
