@@ -8,27 +8,29 @@ Comprehensive testing strategies for RGS applications.
 
 ```typescript
 // store.test.ts
-import { initState, getState, setState, useStore } from '@biglogic/rgs'
+import { gstate, destroyAllStores } from '@biglogic/rgs'
 import { renderHook, act } from '@testing-library/react'
 
 describe('Store', () => {
-  beforeEach(() => {
-    initState({ counter: 0 })
+  const store = gstate({ counter: 0 })
+  
+  afterEach(() => {
+    destroyAllStores()
   })
 
   test('should initialize with initial state', () => {
-    expect(getState('counter')).toBe(0)
+    expect(store.get('counter')).toBe(0)
   })
 
   test('should update state', () => {
     act(() => {
-      setState('counter', 5)
+      store.set('counter', 5)
     })
-    expect(getState('counter')).toBe(5)
+    expect(store.get('counter')).toBe(5)
   })
 
   test('hook should update component', () => {
-    const { result } = renderHook(() => useStore<number>('counter'))
+    const { result } = renderHook(() => store('counter'))
     
     expect(result.current[0]).toBe(0)
     
@@ -45,12 +47,12 @@ describe('Store', () => {
 
 ```typescript
 test('should handle complex state', () => {
-  initState({
+  const store = gstate({
     user: { name: 'John', role: 'admin' },
     settings: { theme: 'dark' }
   })
   
-  const user = getState('user')
+  const user = store.get('user')
   expect(user.name).toBe('John')
   expect(user.role).toBe('admin')
 })
@@ -59,15 +61,15 @@ test('should handle complex state', () => {
 ### Testing Computed Values
 
 ```typescript
-import { computed } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
 test('should compute derived values', () => {
-  initState({ price: 100, quantity: 2 })
+  const store = gstate({ price: 100, quantity: 2 })
   
-  computed('price', (price) => price * 1.2)
+  store.compute('total', (get) => get('price') * get('quantity'))
   
-  const [withTax] = useStore<number>('price_withTax')
-  expect(withTax).toBe(120)
+  const [total] = store('total')
+  expect(total).toBe(200)
 })
 ```
 
@@ -77,20 +79,20 @@ test('should compute derived values', () => {
 
 ```typescript
 // integration.test.ts
-import { initState, transaction, watch } from '@biglogic/rgs'
+import { gstate, destroyAllStores } from '@biglogic/rgs'
 
 test('transaction should batch updates', () => {
-  initState({ a: 0, b: 0, c: 0 })
+  const store = gstate({ a: 0, b: 0, c: 0 })
   
   const changes: string[] = []
-  watch(['a', 'b', 'c'], () => {
+  store._subscribe(() => {
     changes.push('changed')
   })
   
-  transaction(() => {
-    setState('a', 1)
-    setState('b', 2)
-    setState('c', 3)
+  store.transaction(() => {
+    store.set('a', 1)
+    store.set('b', 2)
+    store.set('c', 3)
   })
   
   // Should only trigger one change notification
@@ -102,10 +104,12 @@ test('transaction should batch updates', () => {
 
 ```typescript
 import { render, screen, fireEvent } from '@testing-library/react'
-import { RGSProvider, useStore } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const useStore = gstate({ counter: 0 })
 
 const TestComponent = () => {
-  const [count, setCount] = useStore<number>('counter')
+  const [count, setCount] = useStore('counter')
   return (
     <div>
       <span data-testid="count">{count}</span>
@@ -115,13 +119,7 @@ const TestComponent = () => {
 }
 
 test('component should update on state change', () => {
-  initState({ counter: 0 })
-  
-  render(
-    <RGSProvider>
-      <TestComponent />
-    </RGSProvider>
-  )
+  render(<TestComponent />)
   
   expect(screen.getByTestId('count')).toHaveTextContent('0')
   
@@ -138,13 +136,13 @@ test('component should update on state change', () => {
 ```typescript
 // stress.test.ts
 test('handles high-frequency updates', () => {
-  initState({})
+  const store = gstate({})
   
   const start = performance.now()
   
   // 10,000 rapid updates
   for (let i = 0; i < 10000; i++) {
-    setState(`key_${i % 100}`, i)
+    store.set(`key_${i % 100}`, i)
   }
   
   const elapsed = performance.now() - start
@@ -158,15 +156,15 @@ test('handles high-frequency updates', () => {
 
 ```typescript
 test('handles large objects', () => {
-  initState({})
+  const store = gstate({})
   
-  const largeObject = {}
+  const largeObject: Record<string, string> = {}
   for (let i = 0; i < 1000; i++) {
     largeObject[`key_${i}`] = 'value'.repeat(100)
   }
   
   const start = performance.now()
-  setState('large', largeObject)
+  store.set('large', largeObject)
   const elapsed = performance.now() - start
   
   expect(elapsed).toBeLessThan(500)
@@ -176,18 +174,18 @@ test('handles large objects', () => {
 ### Concurrent Updates
 
 ```typescript
-import { transaction } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
 test('handles concurrent updates', async () => {
-  initState({ counter: 0 })
+  const store = gstate({ counter: 0 })
   
   // Simulate concurrent updates
   const updates = Array(100).fill(null).map((_, i) => {
     return new Promise(resolve => {
       setTimeout(() => {
-        transaction(() => {
-          const current = getState<number>('counter')
-          setState('counter', current + 1)
+        store.transaction(() => {
+          const current = store.get<number>('counter')
+          store.set('counter', current + 1)
         })
         resolve(null)
       }, Math.random() * 10)
@@ -195,7 +193,7 @@ test('handles concurrent updates', async () => {
   })
   
   await Promise.all(updates)
-  expect(getState('counter')).toBe(100)
+  expect(store.get('counter')).toBe(100)
 })
 ```
 
@@ -230,14 +228,14 @@ module.exports = {
 
 ```typescript
 // test-utils.ts
-import { initState } from '@biglogic/rgs'
+import { gstate, destroyAllStores } from '@biglogic/rgs'
 
-export const setupTestStore = (initialState = {}) => {
-  initState(initialState)
+export const setupTestStore = <S extends Record<string, unknown>>(initialState: S) => {
+  return gstate(initialState)
 }
 
 export const cleanup = () => {
-  // Clean up after each test
+  destroyAllStores()
 }
 ```
 
