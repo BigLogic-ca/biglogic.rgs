@@ -4,7 +4,6 @@
 ## Project Identity
 - **Name**: Argis (RGS) - Reactive Global State
 - **Package**: @biglogic/rgs
-- **Version**: 3.9.56
 - **Description**: Enterprise-grade reactive global state management for React
 - **License**: MIT
 - **Author**: Dario Passariello
@@ -78,7 +77,7 @@ const store2 = createStore({
 
 ### 2. React Hooks
 ```typescript
-import { useStore, useIsStoreReady, initState } from '@biglogic/rgs'
+import { useStore, useIsStoreReady, useSyncedState } from '@biglogic/rgs'
 
 // Key mode - returns [value, setter] tuple
 const [count, setCount] = useStore<number>('counter')
@@ -88,6 +87,9 @@ const count = useStore(state => state.counter)
 
 // Check if store is ready (hydration complete)
 const isReady = useIsStoreReady()
+
+// Offline-first sync state
+const [data, setData, syncState] = useSyncedState('data')
 ```
 
 ### 3. Setting and Getting State
@@ -106,6 +108,10 @@ store.remove('counter')
 
 // Delete all
 store.deleteAll()
+
+// Using gstate hook setter
+const [count, setCount] = useStore('counter')
+setCount(10)
 ```
 
 ### 4. Computed Values
@@ -119,8 +125,8 @@ const doubled = store.compute('doubled', (get) => {
 ### 5. Watching for Changes
 ```typescript
 // Watch a key
-const unsubscribe = store.watch('counter', (newValue, oldValue) => {
-  console.log(`Changed: ${oldValue} -> ${newValue}`)
+const unsubscribe = store.watch('counter', (newValue) => {
+  console.log(`Counter changed to: ${newValue}`)
 })
 
 // Subscribe to all changes
@@ -171,9 +177,10 @@ const decrypted = await decrypt(stored, key)
 
 ### Audit Logging
 ```typescript
-import { setAuditLogger } from '@biglogic/rgs'
+import { setAuditLogger, AuditEntry } from '@biglogic/rgs'
 
-setAuditLogger((entry) => {
+// Configure global audit logger
+setAuditLogger((entry: AuditEntry) => {
   // Send to audit service
   console.log(`${entry.action} on ${entry.key} by ${entry.userId}: ${entry.success}`)
 })
@@ -181,28 +188,32 @@ setAuditLogger((entry) => {
 
 ### GDPR Compliance
 ```typescript
-import { recordConsent, hasConsent, exportUserData, deleteUserData } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ data: null }, { userId: 'user-123' })
 
 // Record consent
-recordConsent(consentsMap, userId, 'analytics', true)
+store.recordConsent('user-123', 'analytics', true)
 
 // Check consent
-if (hasConsent(consentsMap, userId, 'analytics')) { /* proceed */ }
+if (store.hasConsent('user-123', 'analytics')) { /* proceed */ }
 
 // Export user data (Article 20)
-const userData = exportUserData(consentsMap, userId)
+const userData = store.exportUserData('user-123')
 
 // Delete user data (Article 17)
-deleteUserData(consentsMap, userId)
+store.deleteUserData('user-123')
 ```
 
 ## Local-First Sync Engine
 
-### Configuration
+Configured via `sync` option in store config:
+
 ```typescript
-import { gstate } from '@biglogic/rgs'
+import { gstate, useSyncedState } from '@biglogic/rgs'
 
 const store = gstate({ data: null }, {
+  namespace: 'my-app',
   sync: {
     endpoint: 'https://api.example.com/sync',
     authToken: () => localStorage.getItem('token'),
@@ -212,9 +223,8 @@ const store = gstate({ data: null }, {
   }
 })
 
-// Use sync methods via plugins
-await store.plugins.sync.flush()
-await store.plugins.sync.getState()
+// useSyncedState provides offline-first state management
+const [data, setData, syncState] = useSyncedState('data')
 ```
 
 ## Plugin System
@@ -232,17 +242,23 @@ await store.plugins.sync.getState()
 | guard | `@biglogic/rgs` | Transform on set |
 | analytics | `@biglogic/rgs` | Track changes |
 | debug | `@biglogic/rgs` | Console access (DEV) |
+| sync | `@biglogic/rgs` | Cross-tab sync |
 
 ### Using Plugins
 ```typescript
-import { gstate, undoRedoPlugin } from '@biglogic/rgs'
+import { gstate, undoRedoPlugin, indexedDBPlugin, cloudSyncPlugin } from '@biglogic/rgs'
 
 const store = gstate({ count: 0 })
+
+// Add undo/redo
 store._addPlugin(undoRedoPlugin({ limit: 50 }))
 
 // Access plugin methods
 store.plugins.undoRedo.undo()
 store.plugins.undoRedo.canUndo() // boolean
+
+// Cloud sync with adapter
+store._addPlugin(cloudSyncPlugin({ adapter, autoSyncInterval: 30000 }))
 ```
 
 ### Custom Plugin
@@ -344,13 +360,66 @@ const store = gstate({}, {
 ## Common Issues & Solutions
 
 ### "No store initialized" warning
-Call `initState()` before using `useStore()` or pass store instance explicitly.
+Call `gstate()` to create a store before using hooks, or pass store instance explicitly.
 
 ### Hydration mismatch
 Use `createSSRStore()` for SSR or ensure consistent initial state.
 
 ### Memory leaks
-Call `store.destroy()` or `destroyState(namespace)` when unmounting.
+Call `store.destroy()` or `destroyAllStores()` when unmounting.
+
+## Missing Documentation Areas
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **Core Concepts** | docs/guide/core-concepts.md | File missing |
+| **API Reference** | docs/guide/api-reference.md | File missing |
+| **Advanced Usage** | docs/guide/advanced-usage.md | File missing |
+| **Plugin SDK** | docs/guide/plugin-sdk.md | File missing |
+| **Case Studies** | docs/guide/case-studies.md | File missing |
+| **Best Practices** | docs/guide/best-practices.md | File missing |
+| **Migration Guide** | docs/guide/migration-guide.md | File missing |
+| **Troubleshooting** | docs/guide/troubleshooting.md | File missing |
+| **Performance** | docs/guide/performance.md | File missing |
+
+## Additional Features
+
+### Thunk Middleware (Async Actions)
+```typescript
+import { createThunkStore, createAsyncAction } from '@biglogic/rgs'
+
+const store = createStore({ namespace: 'app' })
+const thunkStore = createThunkStore(store)
+
+// Async thunk
+const fetchUser = createAsyncAction('user', async () => {
+  const response = await fetch('/api/user')
+  return response.json()
+})
+
+// Execute
+await thunkStore.dispatch(fetchUser)
+```
+
+### Saga-like Effects
+```typescript
+import { createSaga, call, put, take, all, race } from '@biglogic/rgs'
+
+const watchFetch = function*() {
+  while (true) {
+    yield take('FETCH_USER')
+    yield put({ type: 'SET_LOADING', payload: true })
+    try {
+      const user = yield call(() => fetch('/api/user').then(r => r.json()))
+      yield put({ type: 'SET_USER', payload: user })
+    } catch (error) {
+      yield put({ type: 'SET_ERROR', payload: error })
+    }
+  }
+}
+
+runSaga(store, createSaga(watchFetch))
+```
 
 ## Dependencies
 - immer: Immutable state updates
