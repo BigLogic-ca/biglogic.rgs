@@ -6,17 +6,22 @@
       "ES2020",
       "dom"
     ],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node16"
+    "moduleResolution": "node16",
+    "rootDir": "./",
+    "outDir": "./build",
   },
   "include": [
     "extension.ts",
+    "media/**/*",
     "json/**/*.json"
   ],
   "exclude": [
