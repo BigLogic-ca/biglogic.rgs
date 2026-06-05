@@ -32,14 +32,12 @@ Create a simple test file to verify RGS is properly installed:
 
 ```typescript
 // test-rgs.ts
-import { initState } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
-const store = initState({
-  test: 'Hello RGS!'
-})
+const store = gstate({ test: 'Hello RGS!' })
 
 console.log('RGS installed successfully!')
-console.log('Initial state:', store.getState('test'))
+console.log('Initial state:', store.get('test'))
 ```
 
 Run with:
