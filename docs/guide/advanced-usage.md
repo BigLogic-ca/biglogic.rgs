@@ -9,13 +9,15 @@ Batch multiple state updates into a single transaction for performance and consi
 ### Basic Transaction
 
 ```typescript
-import { transaction } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
+
+const store = gstate({ user: null, permissions: [] })
 
 // All updates happen atomically
-transaction(() => {
-  setState('user', { name: 'Bob', role: 'admin' })
-  setState('permissions', ['read', 'write', 'delete'])
-  setState('lastLogin', Date.now())
+store.transaction(() => {
+  store.set('user', { name: 'Bob', role: 'admin' })
+  store.set('permissions', ['read', 'write', 'delete'])
+  store.set('lastLogin', Date.now())
 })
 // Components re-render once after transaction completes
 ```
@@ -23,13 +25,13 @@ transaction(() => {
 ### Nested Transactions
 
 ```typescript
-transaction(() => {
-  setState('a', 1)
+store.transaction(() => {
+  store.set('a', 1)
   
   // Nested transaction (flattens to parent)
-  transaction(() => {
-    setState('b', 2)
-    setState('c', 3)
+  store.transaction(() => {
+    store.set('b', 2)
+    store.set('c', 3)
   })
 })
 ```
@@ -47,43 +49,41 @@ RGS supports a plugin system for extending functionality.
 ### Creating a Plugin
 
 ```typescript
-import { installPlugin, Plugin } from '@biglogic/rgs'
+import type { IPlugin } from '@biglogic/rgs'
 
 // Define a custom plugin
-const loggerPlugin: Plugin = {
+const loggerPlugin: IPlugin = {
   name: 'logger',
-  version: '1.0.0',
   
-  // Called when plugin is installed
-  onInstall: (context) => {
-    console.log('Logger plugin installed')
-  },
-  
-  // Called before state is set
-  beforeSet: (key, value) => {
-    console.log(`Setting ${key} to:`, value)
-    return value // Return (possibly modified) value
-  },
-  
-  // Called after state is set
-  afterSet: (key, value) => {
-    console.log(`Set ${key} complete`)
+  hooks: {
+    onInstall: ({ store }) => {
+      console.log('Logger plugin installed')
+    },
+    
+    onSet: ({ key, value }) => {
+      console.log(`Setting ${key} to:`, value)
+    }
   }
 }
 
 // Install the plugin
-installPlugin(loggerPlugin)
+const store = gstate({ data: null })
+store._addPlugin(loggerPlugin)
 ```
 
 ### Built-in Plugin Hooks
 
 | Hook | Description |
 |------|-------------|
+| `onInit` | Called when store is initialized |
 | `onInstall` | Called when plugin is installed |
-| `beforeSet` | Called before state is updated |
-| `afterSet` | Called after state is updated |
-| `beforeGet` | Called before state is read |
-| `afterGet` | Called after state is read |
+| `onSet` | Called before state is updated |
+| `onGet` | Called before state is read |
+| `onRemove` | Called before state is removed |
+| `onDestroy` | Called when store is destroyed |
+| `onTransaction` | Called at start/end of transaction |
+| `onBeforeSet` | Called before state is updated |
+| `onAfterSet` | Called after state is updated |
 
 ### Plugin Use Cases
 
@@ -99,16 +99,13 @@ Persist state to localStorage, sessionStorage, or custom storage.
 ### Basic Persistence
 
 ```typescript
-import { initState } from '@biglogic/rgs'
+import { gstate } from '@biglogic/rgs'
 
-const store = initState(
+const useStore = gstate(
   { cart: [], user: null },
   {
     namespace: 'ecommerce',
-    storage: localStorage, // or sessionStorage, or custom
-    persist: true,
-    // Auto-hydrate on init
-    hydrate: true
+    persistByDefault: true
   }
 )
 ```
@@ -116,14 +113,11 @@ const store = initState(
 ### Manual Persistence
 
 ```typescript
-import { persist } from '@biglogic/rgs'
+// Per-key persistence override
+store.set('temp', value, { persist: false })
 
-// Manually persist
-persist('cart', localStorage)
-
-// Manually hydrate
-import { hydrate } from '@biglogic/rgs'
-hydrate('cart', localStorage)
+// With encryption
+store.set('sensitive', encryptedValue, { encrypted: true })
 ```
 
 ### Custom Storage Adapters
@@ -131,10 +125,8 @@ hydrate('cart', localStorage)
 Create custom storage adapters for different backends.
 
 ```typescript
-import { StorageAdapter } from '@biglogic/rgs'
-
 // Custom AsyncStorage adapter (React Native example)
-const asyncStorageAdapter: StorageAdapter = {
+const asyncStorageAdapter: Storage = {
   getItem: async (key: string) => {
     const value = await AsyncStorage.getItem(key)
     return value ? JSON.parse(value) : null
@@ -146,20 +138,13 @@ const asyncStorageAdapter: StorageAdapter = {
   
   removeItem: async (key: string) => {
     await AsyncStorage.removeItem(key)
-  }
+  },
+  
+  key: (index: number) => AsyncStorage.getKey(index),
+  get length() { return AsyncStorage.getLength() }
 }
 
-initState(state, { storage: asyncStorageAdapter })
-```
-
-### Storage Adapter Interface
-
-```typescript
-interface StorageAdapter {
-  getItem(key: string): any | Promise<any>
-  setItem(key: string, value: any): void | Promise<void>
-  removeItem(key: string): void | Promise<void>
-}
+const store = gstate({ data: null }, { storage: asyncStorageAdapter })
 ```
 
 ## SSR Compatibility
@@ -170,13 +155,26 @@ RGS supports server-side rendering with proper hydration.
 
 ```typescript
 // Server-side
-const serverState = initState({ user: null })
+import { createSSRStore } from '@biglogic/rgs'
 
-// Send state to client
-const initialState = JSON.stringify(getState())
+const store = createSSRStore({
+  namespace: 'my-app',
+  initialState: { user: null }
+})
 
-// Client-side hydration
-initState(initialState, { hydrate: true })
+// Get serialized state
+const serializedState = JSON.stringify(store.getSnapshot())
+
+// Client-side
+import { useHydrated } from '@biglogic/rgs'
+
+function App() {
+  const isHydrated = useHydrated()
+  
+  if (!isHydrated) return <Loading />
+  
+  return <AppContent />
+}
 ```
 
 ## Next Steps
