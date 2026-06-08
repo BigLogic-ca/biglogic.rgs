@@ -34,7 +34,7 @@
     "globals": "17.6.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "memorio": "4.0.0",
+    "memorio": "4.1.0",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
