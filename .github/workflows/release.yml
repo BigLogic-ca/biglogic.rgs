@@ -42,13 +42,13 @@ jobs:
    - name: Build package
      run: npm run build
 
-   # - name: Install test dependencies
-   #   working-directory: ./tests
-   #   run: npm ci
+   - name: Install test dependencies
+     working-directory: ./tests
+     run: npm ci
 
-   # - name: Run tests
-   #   working-directory: ./tests
-   #   run: npm test
+   - name: Run tests
+     working-directory: ./tests
+     run: npm test
 
    - name: Generate .npmrc
      run: |
