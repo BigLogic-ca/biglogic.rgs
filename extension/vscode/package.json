@@ -21,12 +21,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/picla/picla.npm.rgs"
+    "url": "https://github.com/biglogic-ca/biglogic.rgs"
   },
   "bugs": {
-    "url": "https://github.com/picla/picla.npm.rgs/issues"
+    "url": "https://github.com/biglogic-ca/biglogic.rgs/issues"
   },
-  "homepage": "https://github.com/picla/picla.npm.rgs",
+  "homepage": "https://github.com/biglogic-ca/biglogic.rgs",
   "keywords": [
     "rgs",
     "gstate",
