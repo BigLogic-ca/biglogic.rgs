@@ -2,7 +2,7 @@
  * Argis (RGS) - Reactive Global State
  * Simple, secure, scalable state management for React
  *
- * @see https://github.com/picla-net/picla.npm.rgs
+ * @see https://github.com/biglogic-ca/biglogic.rgs
  */
 
 import { createStore as baseCreateStore } from "./core/store"
