@@ -184,8 +184,8 @@ import { useStore, setState } from '@biglogic/rgs'
 
 ### Resources
 
-- **Documentation:** https://github.com/picla-net/picla.npm.rgs/docs
-- **Issues:** https://github.com/picla-net/picla.npm.rgs/issues
+- **Documentation:** https://github.com/biglogic-ca/biglogic.rgs/docs
+- **Issues:** https://github.com/biglogic-ca/biglogic.rgs/issues
 - **Email:** dariopassariello@gmail.com
 
 ### Before Reporting Issues
