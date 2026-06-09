@@ -77,7 +77,8 @@
   },
   "scripts": {
     "prebuild": "npm run lint && npm run tsx && npm run test",
-    "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
+    "build": "tsup",
+    "build1": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
     "build:extension": "cd extension/vscode && vsce package --no-dependencies -o ../../docs/extension/rgs.vsix",
     "watch": "tsup --watch",
     "npm:pack": "npm run build && npm run build:extension && cd dist && npm pack",
