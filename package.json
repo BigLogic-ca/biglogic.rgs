@@ -65,10 +65,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/picla-net/picla.npm.rgs.git"
+    "url": "git+https://github.com/biglogic-ca/biglogic.rgs.git"
   },
   "bugs": {
-    "url": "https://github.com/picla-net/picla.npm.rgs/issues"
+    "url": "https://github.com/biglogic-ca/biglogic.rgs/issues"
   },
   "support": {
     "name": "Dario Passariello",
@@ -76,6 +76,7 @@
     "email": "dariopassariello@gmail.com"
   },
   "scripts": {
+    "prebuild1": "npm run lint && npm run tsx && npm run test",
     "build": "tsup && npx tsc -p tsconfig.json --emitDeclarationOnly ",
     "build:extension": "cd extension/vscode && vsce package --no-dependencies -o ../../docs/extension/rgs.vsix",
     "watch": "tsup --watch",
@@ -88,32 +89,17 @@
     "generate-imports": "tsx core/generate-imports.ts"
   },
   "devDependencies": {
-    "@jest/globals": "^30.4.1",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.9.1",
-    "@types/react": "19.2.16",
+    "@types/node": "^25.9.2",
+    "@types/react": "19.2.17",
     "@types/react-dom": "^19.2.3",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-sass-plugin": "3.7.0",
     "esbuild-scss-modules-plugin": "1.1.1",
-    "eslint": "^10.4.1",
-    "eslint-plugin-react": "7.37.5",
     "immer": "11.1.8",
-    "jest": "^30.4.2",
-    "jest-environment-jsdom": "^30.4.1",
-    "memorio": "4.0.0",
+    "memorio": "4.1.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "terser": "5.48.0",
-    "ts-jest": "^29.4.11",
-    "ts-node": "10.9.2",
-    "tslib": "^2.8.1",
-    "tsup": "8.5.1",
-    "tsx": "4.22.4",
-    "typescript": "^6.0.3"
+    "terser": "5.48.0"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

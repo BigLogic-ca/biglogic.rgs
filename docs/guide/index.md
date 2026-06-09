@@ -37,8 +37,8 @@ Welcome to the comprehensive enterprise guide for Argis (RGS) - a reactive globa
 
 ## Support and Community
 
-- **Documentation:** https://github.com/picla-net/picla.npm.rgs/docs
-- **Issues:** https://github.com/picla-net/picla.npm.rgs/issues
+- **Documentation:** https://github.com/biglogic-ca/biglogic.rgs/docs
+- **Issues:** https://github.com/biglogic-ca/biglogic.rgs/issues
 - **Email:** dariopassariello@gmail.com
 - **Patreon:** https://www.patreon.com/passariello
 

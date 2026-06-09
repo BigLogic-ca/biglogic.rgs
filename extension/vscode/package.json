@@ -21,12 +21,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/picla/picla.npm.rgs"
+    "url": "https://github.com/biglogic-ca/biglogic.rgs"
   },
   "bugs": {
-    "url": "https://github.com/picla/picla.npm.rgs/issues"
+    "url": "https://github.com/biglogic-ca/biglogic.rgs/issues"
   },
-  "homepage": "https://github.com/picla/picla.npm.rgs",
+  "homepage": "https://github.com/biglogic-ca/biglogic.rgs",
   "keywords": [
     "rgs",
     "gstate",
@@ -255,7 +255,7 @@
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
     "@vscode/vsce": "^3.9.1",
-    "eslint": "^10.4.1",
+    "eslint": "^9.6.0",
     "typescript": "^6.0.3"
   },
   "overrides": {

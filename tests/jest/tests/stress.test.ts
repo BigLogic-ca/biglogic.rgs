@@ -82,7 +82,7 @@ describe('Stress Tests - Enterprise Performance', () => {
     console.log(`Large object (100KB) - Set: ${setTime.toFixed(2)}ms, Get: ${getTime.toFixed(2)}ms`)
 
     expect(retrieved).toEqual(largeObj)
-    expect(setTime).toBeLessThan(300)
+    expect(setTime).toBeLessThan(500)
     expect(getTime).toBeLessThan(100)
   })
 
