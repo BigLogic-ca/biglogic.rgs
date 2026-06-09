@@ -9,7 +9,6 @@
   "sideEffects": false,
   "license": "MIT",
   "workspaces": [
-    ".",
     "tests",
     "extension/vscode"
   ],
