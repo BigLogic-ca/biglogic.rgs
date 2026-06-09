@@ -66,10 +66,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/picla-net/picla.npm.rgs.git"
+    "url": "git+https://github.com/biglogic-ca/biglogic.rgs.git"
   },
   "bugs": {
-    "url": "https://github.com/picla-net/picla.npm.rgs/issues"
+    "url": "https://github.com/biglogic-ca/biglogic.rgs/issues"
   },
   "support": {
     "name": "Dario Passariello",
@@ -95,14 +95,14 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.9.1",
-    "@types/react": "19.2.16",
+    "@types/node": "^25.9.2",
+    "@types/react": "19.2.17",
     "@types/react-dom": "^19.2.3",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-sass-plugin": "3.7.0",
     "esbuild-scss-modules-plugin": "1.1.1",
     "immer": "11.1.8",
-    "memorio": "4.0.0",
+    "memorio": "4.1.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "terser": "5.48.0",
