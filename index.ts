@@ -151,6 +151,8 @@ export * from "./plugins/index"
 // Stateless Utilities
 export {
   generateEncryptionKey,
+  encrypt,
+  decrypt,
   exportKey,
   importKey,
   isCryptoAvailable,
