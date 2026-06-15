@@ -250,7 +250,7 @@
     "package": "vsce package --no-dependencies -o ../../dist/rgs.vsix"
   },
   "devDependencies": {
-    "@types/node": "25.9.1",
+    "@types/node": "25.9.3",
     "@types/vscode": "^1.116.0",
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
