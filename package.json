@@ -95,11 +95,11 @@
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-sass-plugin": "3.7.0",
     "esbuild-scss-modules-plugin": "1.1.1",
-    "immer": "11.1.8",
+    "immer": "11.1.11",
     "memorio": "4.2.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "terser": "5.48.0"
+    "terser": "5.49.0"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
