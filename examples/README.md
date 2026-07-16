@@ -35,7 +35,3 @@ Enable `validateInput: true` in your store configuration to automatically saniti
 
 ### 4. High-Volume Storage (IndexedDB)
 If your application needs to store more than 10MB (the typical localStorage limit), use the **IndexedDB Plugin**. It allows storing Gigabytes of data asynchronously without blocking the main UI thread.
-
-## 🛠️ Testing Environment
-All examples are validated using Jest in a `jsdom` environment.
-Refer to `tests/jest/tests/examples_v.test.ts` for automated verify suites.
