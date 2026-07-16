@@ -31,7 +31,7 @@ test.describe(() => {
         const response = await route.fetch()
         const json = await response.json()
         json.message['big_red_dog'] = []
-        console.log(json)
+        console.debug(json)
         await route.fulfill({ response, json })
       })
     }

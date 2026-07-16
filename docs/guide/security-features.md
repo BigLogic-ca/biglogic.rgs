@@ -94,6 +94,8 @@ const stored = store.get('sensitive')
 const decrypted = await decrypt(stored, importedKey)
 ```
 
+**Note:** AES-GCM requires a unique IV for each encryption with the same key. RGS automatically generates a fresh random IV per encryption operation for maximum security.
+
 ### Key Derivation from Password
 
 Derive encryption keys from user passwords using PBKDF2 (NIST SP 800-132 compliant).

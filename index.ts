@@ -111,7 +111,7 @@ export {
   createAsyncAction,
   createAsyncActions,
   createSaga,
-  runSaga,
+  // runSaga,
   call,
   put,
   select,
@@ -151,6 +151,8 @@ export * from "./plugins/index"
 // Stateless Utilities
 export {
   generateEncryptionKey,
+  encrypt,
+  decrypt,
   exportKey,
   importKey,
   isCryptoAvailable,

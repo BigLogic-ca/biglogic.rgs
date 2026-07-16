@@ -69,7 +69,7 @@ export const createAsyncStore = <T>(
       const prev = store.get(key) as AsyncState<T> | null
       store.set(key, {
         ...(prev || { data: null, loading: false, error: null, updatedAt: null }),
-        error: e instanceof Error ? e : new Error(String(e)),
+        error: e instanceof Error ? e : new Error(JSON.stringify(e)),
         loading: false
       })
     }

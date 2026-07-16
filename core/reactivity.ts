@@ -78,7 +78,7 @@ export const emitChange = (ctx: ReactivityContext, changedKey?: string, isTransa
       for (const w of watchers) {
         try { w(val) }
         catch (e) {
-          const error = e instanceof Error ? e : new Error(String(e))
+          const error = e instanceof Error ? e : new Error(JSON.stringify(e))
           if (ctx.onError) ctx.onError(error, { operation: 'watcher', key: changedKey })
           else if (!ctx.silent) console.error(`[gstate] Watcher error for "${changedKey}":`, e)
         }
@@ -91,7 +91,7 @@ export const emitChange = (ctx: ReactivityContext, changedKey?: string, isTransa
       for (const l of keyListeners) {
         try { l() }
         catch (e) {
-          const error = e instanceof Error ? e : new Error(String(e))
+          const error = e instanceof Error ? e : new Error(JSON.stringify(e))
           if (ctx.onError) ctx.onError(error, { operation: 'keyListener', key: changedKey })
           else if (!ctx.silent) console.error(`[gstate] Listener error for "${changedKey}":`, e)
         }
@@ -108,7 +108,7 @@ export const emitChange = (ctx: ReactivityContext, changedKey?: string, isTransa
   for (const l of ctx.listeners) {
     try { l() }
     catch (e) {
-      const error = e instanceof Error ? e : new Error(String(e))
+      const error = e instanceof Error ? e : new Error(JSON.stringify(e))
       if (ctx.onError) ctx.onError(error, { operation: 'listener' })
       else if (!ctx.silent) console.error(`[gstate] Global listener error: `, e)
     }

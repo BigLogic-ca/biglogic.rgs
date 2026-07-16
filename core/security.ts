@@ -130,7 +130,9 @@ export interface EncryptionKey {
 // --- AES-256-GCM Encryption ---
 
 /**
- * Generates a secure AES-256-GCM key and IV
+ * Generates a secure AES-256-GCM key.
+ * Note: The IV is kept for backward compatibility with export/import, but a fresh
+ * random IV is generated for each encryption operation to ensure security.
  * @returns Promise<EncryptionKey>
  */
 export const generateEncryptionKey = async (): Promise<EncryptionKey> => {
@@ -181,22 +183,23 @@ export const importKey = async (keyData: string, ivData: string): Promise<Encryp
 /**
  * Encrypts data using AES-256-GCM
  * @param data Data to encrypt
- * @param encryptionKey Key and IV
+ * @param encryptionKey Key (IV is generated per encryption for security)
  * @returns Promise<string> Base64 combined IV + ciphertext
  */
 export const encrypt = async (data: unknown, encryptionKey: EncryptionKey): Promise<string> => {
   const
     encoder = new TextEncoder(),
     encoded = encoder.encode(JSON.stringify(data)),
+    iv = crypto.getRandomValues(new Uint8Array(12)),
     encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: encryptionKey.iv as unknown as BufferSource },
+      { name: 'AES-GCM', iv: iv as unknown as BufferSource },
       encryptionKey.key,
       encoded
     ),
-    combined = new Uint8Array(encryptionKey.iv.length + encrypted.byteLength)
+    combined = new Uint8Array(iv.length + encrypted.byteLength)
 
-  combined.set(encryptionKey.iv)
-  combined.set(new Uint8Array(encrypted), encryptionKey.iv.length)
+  combined.set(iv)
+  combined.set(new Uint8Array(encrypted), iv.length)
 
   return btoa(String.fromCharCode(...combined))
 }

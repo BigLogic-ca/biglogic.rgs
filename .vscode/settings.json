@@ -90,10 +90,6 @@
     "editor.foldingStrategy": "indentation"
   },
   ///
-  "jest.runMode": {
-    "type": "on-demand"
-  },
-  ///
   "search.exclude": {
     ".editorconfig": true,
     "**/.cache": true,

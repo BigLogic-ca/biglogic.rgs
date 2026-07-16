@@ -229,7 +229,7 @@ interface StoreInfo {
   keys: string[]
   plugins: string[]
   category: 'project' | 'test'
-  testFramework?: 'jest' | 'playwright' | undefined
+  testFramework?: 'playwright' | undefined
   testFile?: string
   security: {
     encoded: boolean
@@ -521,7 +521,7 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
             'store-test'
           )
           item.storeInfo = store
-          const frameworkLabel = store.testFramework === 'jest' ? 'Jest' : store.testFramework === 'playwright' ? 'Playwright' : ''
+          const frameworkLabel = store.testFramework === 'playwright'
           item.description = store.type + (frameworkLabel ? ` | ${frameworkLabel}` : '')
           if (store.testFile) {
             item.description += ` | ${store.testFile}`
@@ -573,7 +573,7 @@ class RGSStateExplorerProvider implements vscode.TreeDataProvider<RGSTreeItem> {
       detailsChildren.push(typeItem)
 
       if (store.category === 'test' && store.testFramework) {
-        const frameworkLabel = store.testFramework === 'jest' ? 'Jest' : 'Playwright'
+        const frameworkLabel = 'Playwright'
         const testFwItem = new RGSTreeItem(`Test Framework: ${frameworkLabel}`, vscode.TreeItemCollapsibleState.None, 'detail')
         detailsChildren.push(testFwItem)
 
@@ -659,12 +659,6 @@ class WorkspaceAnalyzer {
         const content = fs.readFileSync(filePath, 'utf-8')
 
         const isTestFile = filePath.includes('/tests/') || filePath.includes('\\tests\\')
-        const isJestTest = filePath.includes('/tests/jest/') || filePath.includes('\\tests\\jest\\')
-        const isPlaywrightTest = filePath.includes('/tests/playwright/') || filePath.includes('\\tests\\playwright\\')
-
-        let testFramework: 'jest' | 'playwright' | undefined = undefined
-        if (isJestTest) testFramework = 'jest'
-        else if (isPlaywrightTest) testFramework = 'playwright'
 
         const storePattern = /(?:const|let|var)\s+(\w+)\s*=\s*(createStore|initState)\s*[<(]/g
         let match: RegExpExecArray | null
@@ -686,7 +680,6 @@ class WorkspaceAnalyzer {
               keys: [],
               plugins: storePlugins,
               category: isTestFile ? 'test' : 'project',
-              testFramework,
               testFile: isTestFile ? this.findTestFileName(filePath) : undefined,
               security,
               stateProperties
@@ -926,7 +919,7 @@ class WorkspaceAnalyzer {
 // ============================================================================
 
 export function activate(context: vscode.ExtensionContext): void {
-  console.log('RGS IntelliSense extension activated')
+  console.debug('RGS IntelliSense extension activated')
 
   const config = getConfig()
   const analyzer = new WorkspaceAnalyzer()
@@ -1120,7 +1113,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const pos = new vscode.Position(property.line - 1, 0)
         editor.selection = new vscode.Selection(pos, pos)
         editor.revealRange(new vscode.Range(pos, pos))
-      } catch (error) {
+      } catch (_) {
         vscode.window.showErrorMessage('Failed to open file: ' + property.filePath)
       }
     })
@@ -1319,9 +1312,9 @@ export function activate(context: vscode.ExtensionContext): void {
     applyDecorations()
   }
 
-  console.log('RGS IntelliSense extension loaded')
+  console.debug('RGS IntelliSense extension loaded')
 }
 
 export function deactivate(): void {
-  console.log('RGS IntelliSense extension deactivated')
+  console.debug('RGS IntelliSense extension deactivated')
 }

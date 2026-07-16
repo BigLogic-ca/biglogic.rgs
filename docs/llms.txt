@@ -156,11 +156,11 @@ store.hasPermission(key, action, userId) // 'read' | 'write' | 'delete' | 'admin
 
 ### AES-256-GCM Encryption
 ```typescript
-import { 
-  generateEncryptionKey, 
+import {
+  generateEncryptionKey,
   deriveKeyFromPassword,
-  encrypt, 
-  decrypt 
+  encrypt,
+  decrypt
 } from '@biglogic/rgs'
 
 // Generate key
@@ -418,7 +418,6 @@ const watchFetch = function*() {
   }
 }
 
-runSaga(store, createSaga(watchFetch))
 ```
 
 ## Dependencies

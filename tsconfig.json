@@ -1,64 +1,82 @@
 {
   "compilerOptions": {
-    // Base Options
-    "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
-    "allowImportingTsExtensions": false,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "verbatimModuleSyntax": false,
-    "declaration": true,
-    "declarationMap": false,
-    "sourceMap": false,
-    "outDir": "./dist",
-    "removeComments": true,
-    "importHelpers": false,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
+    "noEmit": true,
+    "checkJs": true,
+    "allowJs": true,
+    "composite": false,
+    "sourceMap": false,
+    "incremental": true,
+    // "declaration": false,
     "skipLibCheck": true,
-    "jsx": "react-jsx"
+    "noEmitOnError": true,
+    "importHelpers": true,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "inlineSourceMap": false,
+    "strictNullChecks": false,
+    "resolveJsonModule": true,
+    "preserveConstEnums": true,
+    "allowUmdGlobalAccess": true,
+    // "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolvePackageJsonExports": false,
+    "allowSyntheticDefaultImports": true,
+    "strictPropertyInitialization": false,
+    "forceConsistentCasingInFileNames": true,
+    "tsBuildInfoFile": "./.cache/.tsbuildinfo",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "target": "ESNext",
+    "jsx": "react-jsx",
+    "outDir": "./",
+    "paths": {
+      "/*": [
+        "./*"
+      ],
+      "/src/*": [
+        "./src/*"
+      ]
+    },
+    "lib": [
+      "es2022",
+      "dom.iterable",
+      "dom"
+    ],
+    "types": [
+      "node"
+    ]
   },
+  "rootDirs": [
+    "./"
+  ],
   "typeRoots": [
     "node_modules/@types",
-    "./types/*"
+    "tests/node_modules/@types",
+    "./types/*",
+    "node"
   ],
   "include": [
     "./**/*.ts",
-    "./**/*.tsx"
+    "./**/*.tsx",
+    "./**/types/*.d.ts",
+    "./**/*.json"
   ],
   "exclude": [
     "node_modules",
-    ".private",
-    ".project",
-    "archive",
-    "*backup",
+    "public",
     "dist",
-    "*old*",
-    "*OLD*",
+    "archive",
+    ".private",
+    ".backup",
+    "*old",
+    "*OLD",
     "tests/**/*",
-    "examples/**/*",
-    "docs/**/*",
-    "extension/**/*",
-    "tsup.*"
+    "vite.*"
   ]
 }

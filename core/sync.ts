@@ -269,7 +269,7 @@ export class SyncEngine<S extends Record<string, unknown> = Record<string, unkno
             this.pendingQueue.delete(change.key)
           }
         } catch (err) {
-          errors.push(`Failed to sync "${change.key}": ${err}`)
+          errors.push(`Failed to sync "${change.key}": ${JSON.stringify(err)}`)
         }
       }
 
@@ -285,7 +285,7 @@ export class SyncEngine<S extends Record<string, unknown> = Record<string, unkno
       this.config.onSync(result)
       return result
     } catch (err) {
-      const errorMsg = `Sync failed: ${err}`
+      const errorMsg = `Sync failed: ${JSON.stringify(err)}`
       errors.push(errorMsg)
 
       return {

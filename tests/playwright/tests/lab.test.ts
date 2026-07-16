@@ -68,7 +68,7 @@ test.describe('Test Lab: Cross-Tab Resilience', () => {
       return { tab: i, state }
     }))
 
-    console.log('Sync Results:', results)
+    console.debug('Sync Results:', results)
 
     // Assert eventual consistency: all tabs must have the same value
     const finalState = results[0].state

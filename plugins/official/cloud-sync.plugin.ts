@@ -100,7 +100,7 @@ export const cloudSyncPlugin = <S extends Record<string, unknown>>(options: Clou
           } catch (err) {
             stats.errors++
             console.error(`[gstate] Cloud Sync Failed (${adapter.name}):`, err)
-            return { status: 'error', error: String(err), stats }
+            return { status: 'error', error: JSON.stringify(err), stats }
           }
         })
 

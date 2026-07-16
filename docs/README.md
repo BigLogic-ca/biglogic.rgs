@@ -5,13 +5,16 @@
 
 [![npm version](https://img.shields.io/npm/v/@biglogic/rgs.svg)](https://npmjs.org/package/@biglogic/rgs)
 [![npm downloads](https://img.shields.io/npm/dm/@biglogic/rgs.svg)](https://npmjs.org/package/@biglogic/rgs)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19+-61DAFB.svg)](https://react.dev/)
 
 [![Powered by Immer](https://img.shields.io/badge/Powered%20by-Immer-2ECC71.svg)](https://github.com/immerjs/immer)
 [![Typed with TypeScript](https://img.shields.io/badge/Typed%20with-TypeScript-3178C6.svg)](https://www.typescriptlang.org/)
-[![Tested with Jest](https://img.shields.io/badge/Tested%20with-Jest-C21325.svg)](https://jestjs.io/)
+
+![Vitest](https://img.shields.io/badge/Vitest-gray?logo=vitest)
+![OXlint](https://img.shields.io/badge/Oxlint-gray?logo=oxc)
 [![E2E with Playwright](https://img.shields.io/badge/E2E%20with-Playwright-2ECC71.svg)](https://playwright.dev/)
 
 > **🔐 Security Compliance**: This project is fully compliant with **NIST SP 800-132** standards for password-based key derivation, featuring AES-256-GCM encryption, PBKDF2 with 600k iterations, and 32-byte salts.
@@ -359,7 +362,6 @@ npm run test
 npm run test:e2e
 ```
 
-- ✅ **100+ Unit Tests** (Jest) - Core logic, stores, hooks
 - ✅ **E2E Tests** (Playwright) - Real browser, cross-tab sync
 - ✅ **Concurrency Testing** - Race condition verification
 - ✅ **Security Tests** - AES-256, RBAC, GDPR

@@ -89,7 +89,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
 
   } catch (e) {
 
-    const error = e instanceof Error ? e : new Error(String(e))
+    const error = e instanceof Error ? e : new Error(JSON.stringify(e))
     if (onError) onError(error, { operation: 'persist', key: 'FULL_STATE' })
     else if (!silent) console.error(`[gstate] Persist failed: `, error)
   }
@@ -120,7 +120,7 @@ export const flushDisk = async (ctx: PersistenceContext) => {
       }))
       audit('set', key, true)
     } catch (e) {
-      const error = e instanceof Error ? e : new Error(String(e))
+      const error = e instanceof Error ? e : new Error(JSON.stringify(e))
       if (onError) onError(error, { operation: 'persist', key })
       else if (!silent) console.error(`[gstate] Persist failed: `, error)
     }
@@ -165,8 +165,8 @@ export const hydrateStore = async (
         }
         persisted[key] = d; audit('hydrate', key, true)
       } catch (err) {
-        audit('hydrate', k, false, String(err))
-        const error = err instanceof Error ? err : new Error(String(err))
+        audit('hydrate', k, false, JSON.stringify(err))
+        const error = err instanceof Error ? err : new Error(JSON.stringify(err))
         if (onError) onError(error, { operation: 'hydration', key: k })
         else if (!silent) console.error(`[gstate] Hydration failed for "${k}": `, err)
       }
@@ -185,7 +185,7 @@ export const hydrateStore = async (
     })
     emit()
   } catch (e) {
-    const error = e instanceof Error ? e : new Error(String(e))
+    const error = e instanceof Error ? e : new Error(JSON.stringify(e))
     if (onError) onError(error, { operation: 'hydration' })
     else if (!silent) console.error(`[gstate] Hydration failed: `, error)
   }
