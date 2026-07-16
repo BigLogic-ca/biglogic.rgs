@@ -63,9 +63,9 @@ export default defineConfig(
       '.css': 'css'
     },
     async onSuccess() {
-      if (plug.copyStatic) await copyStatic(include)
-      if (plug.injectCss) await injectCss()
-      if (plug.types) await types()
+      if (plug.copyStatic) copyStatic(include)
+      if (plug.injectCss) injectCss()
+      if (plug.types) types()
       console.debug("Compilation: OK")
     }
   }
