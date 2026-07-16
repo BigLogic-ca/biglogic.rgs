@@ -1,4 +1,4 @@
-import { gstate, undoRedoPlugin, type IStore } from '../../index'
+import { gstate, undoRedoPlugin } from '../../index'
 
 export interface EditorState extends Record<string, unknown> {
   content: string
