@@ -5,7 +5,7 @@
   "license": "PRIVATE",
   "scripts": {
     "backup": "cd backup && backup.bat",
-    "update": "cd node && node npmUpdate.js",
-    "clear": "cd .. && rm -rf node_modules & npm run update"
+    "clear": "cd .. && rm -rf node_modules & npm run update",
+    "update": "cd node && node npmUpdate.js"
   }
 }
