@@ -2,8 +2,6 @@
 
 Comprehensive testing strategies for RGS applications.
 
-## Unit Testing with Jest
-
 ### Basic Test Setup
 
 ```typescript
@@ -13,7 +11,7 @@ import { renderHook, act } from '@testing-library/react'
 
 describe('Store', () => {
   const store = gstate({ counter: 0 })
-  
+
   afterEach(() => {
     destroyAllStores()
   })
@@ -31,13 +29,13 @@ describe('Store', () => {
 
   test('hook should update component', () => {
     const { result } = renderHook(() => store('counter'))
-    
+
     expect(result.current[0]).toBe(0)
-    
+
     act(() => {
       result.current[1](10)
     })
-    
+
     expect(result.current[0]).toBe(10)
   })
 })
@@ -51,7 +49,7 @@ test('should handle complex state', () => {
     user: { name: 'John', role: 'admin' },
     settings: { theme: 'dark' }
   })
-  
+
   const user = store.get('user')
   expect(user.name).toBe('John')
   expect(user.role).toBe('admin')
@@ -65,9 +63,9 @@ import { gstate } from '@biglogic/rgs'
 
 test('should compute derived values', () => {
   const store = gstate({ price: 100, quantity: 2 })
-  
+
   store.compute('total', (get) => get('price') * get('quantity'))
-  
+
   const [total] = store('total')
   expect(total).toBe(200)
 })
@@ -83,18 +81,18 @@ import { gstate, destroyAllStores } from '@biglogic/rgs'
 
 test('transaction should batch updates', () => {
   const store = gstate({ a: 0, b: 0, c: 0 })
-  
+
   const changes: string[] = []
   store._subscribe(() => {
     changes.push('changed')
   })
-  
+
   store.transaction(() => {
     store.set('a', 1)
     store.set('b', 2)
     store.set('c', 3)
   })
-  
+
   // Should only trigger one change notification
   expect(changes.length).toBe(1)
 })
@@ -120,11 +118,11 @@ const TestComponent = () => {
 
 test('component should update on state change', () => {
   render(<TestComponent />)
-  
+
   expect(screen.getByTestId('count')).toHaveTextContent('0')
-  
+
   fireEvent.click(screen.getByText('Increment'))
-  
+
   expect(screen.getByTestId('count')).toHaveTextContent('1')
 })
 ```
@@ -137,17 +135,17 @@ test('component should update on state change', () => {
 // stress.test.ts
 test('handles high-frequency updates', () => {
   const store = gstate({})
-  
+
   const start = performance.now()
-  
+
   // 10,000 rapid updates
   for (let i = 0; i < 10000; i++) {
     store.set(`key_${i % 100}`, i)
   }
-  
+
   const elapsed = performance.now() - start
   console.log(`10k updates: ${elapsed}ms`)
-  
+
   expect(elapsed).toBeLessThan(1000) // Should complete under 1 second
 })
 ```
@@ -157,16 +155,16 @@ test('handles high-frequency updates', () => {
 ```typescript
 test('handles large objects', () => {
   const store = gstate({})
-  
+
   const largeObject: Record<string, string> = {}
   for (let i = 0; i < 1000; i++) {
     largeObject[`key_${i}`] = 'value'.repeat(100)
   }
-  
+
   const start = performance.now()
   store.set('large', largeObject)
   const elapsed = performance.now() - start
-  
+
   expect(elapsed).toBeLessThan(500)
 })
 ```
@@ -178,7 +176,7 @@ import { gstate } from '@biglogic/rgs'
 
 test('handles concurrent updates', async () => {
   const store = gstate({ counter: 0 })
-  
+
   // Simulate concurrent updates
   const updates = Array(100).fill(null).map((_, i) => {
     return new Promise(resolve => {
@@ -191,7 +189,7 @@ test('handles concurrent updates', async () => {
       }, Math.random() * 10)
     })
   })
-  
+
   await Promise.all(updates)
   expect(store.get('counter')).toBe(100)
 })
@@ -211,18 +209,6 @@ Run these tests to establish performance baselines:
 | 1,000 updates with 100 listeners | ~17ms | High listener count |
 
 ## Test Configuration
-
-### Jest Configuration
-
-```javascript
-// jest.config.js
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
-  testMatch: ['**/tests/**/*.test.ts', '**/tests/**/*.spec.ts']
-}
-```
 
 ### Test Utilities
 
