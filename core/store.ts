@@ -200,7 +200,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
         for (const w of watchers) {
           try { w(val) }
           catch (e) {
-            const error = e instanceof Error ? e : new Error(String(e))
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e))
             if (_onError) _onError(error, { operation: 'watcher', key: changedKey })
             else if (!_silent) console.error(`[gstate] Watcher error for "${changedKey}":`, e)
           }
@@ -213,7 +213,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
         for (const l of keyListeners) {
           try { l() }
           catch (e) {
-            const error = e instanceof Error ? e : new Error(String(e))
+            const error = e instanceof Error ? e : new Error(JSON.stringify(e))
             if (_onError) _onError(error, { operation: 'keyListener', key: changedKey })
             else if (!_silent) console.error(`[gstate] Listener error for "${changedKey}":`, e)
           }
@@ -227,7 +227,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
     for (const l of _listeners) {
       try { l() }
       catch (e) {
-        const error = e instanceof Error ? e : new Error(String(e))
+        const error = e instanceof Error ? e : new Error(JSON.stringify(e))
         if (_onError) _onError(error, { operation: 'listener' })
         else if (!_silent) console.error(`[gstate] Global listener error: `, e)
       }
@@ -350,7 +350,7 @@ export const createStore = <S extends Record<string, unknown> = Record<string, u
         if (!_computed.has(key)) { _computed.set(key, { selector: selector as ComputedSelector<unknown>, lastValue: null, deps: new Set() }); _updateComputed(key) }
         return _computed.get(key)!.lastValue as T
       } catch (e) {
-        const error = e instanceof Error ? e : new Error(String(e))
+        const error = e instanceof Error ? e : new Error(JSON.stringify(e))
         if (_onError) _onError(error, { operation: 'compute', key })
         else if (!_silent) console.error(`[gstate] Compute error for "${key}": `, e)
         return null as unknown as T
