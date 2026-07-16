@@ -5,7 +5,7 @@
   "description": "Management, complete IntelliSense, autocomplete, diagnostics and State Explorer for RGS state management library. Built by BigLogic.ca with ❤️",
   "icon": "media/icon.png",
   "copyright": "Dario Passariello",
-  "version": "3.9.60",
+  "version": "3.9.70",
   "license": "MIT",
   "publisher": "Biglogic-Inc",
   "author": {
@@ -250,15 +250,9 @@
     "package": "vsce package --no-dependencies -o ../../dist/rgs.vsix"
   },
   "devDependencies": {
-    "@types/node": "25.9.1",
-    "@types/vscode": "^1.116.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.4",
-    "@typescript-eslint/parser": "^8.59.4",
-    "@vscode/vsce": "^3.9.1",
-    "eslint": "^9.6.0",
-    "typescript": "^6.0.3"
-  },
-  "overrides": {
-    "yauzl": ">=3.2.1"
+    "@types/node": "26.1.1",
+    "@types/vscode": "^1.125.0",
+    "@vscode/vsce": "^3.9.2",
+    "typescript": "^7.0.2"
   }
 }
