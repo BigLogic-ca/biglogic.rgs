@@ -209,7 +209,7 @@ export const createAsyncAction = <T>(
         payload: {
           data: current?.data ?? null,
           loading: false,
-          error: error instanceof Error ? error : new Error(String(error))
+          error: error instanceof Error ? error : new Error(JSON.stringify(error))
         }
       })
 
@@ -245,7 +245,7 @@ export const createAsyncActions = <S extends Record<string, unknown>>(
   store: IStore<S>,
   actions: Record<string, () => Promise<unknown>>
 ): Record<string, ThunkAction<unknown, S>> => {
-  const _thunkStore = createThunkStore(store)
+  // const _thunkStore = createThunkStore(store)
 
   const result: Record<string, ThunkAction<unknown, S>> = {}
 
@@ -399,22 +399,22 @@ export const createSaga = <S extends Record<string, unknown>>(
 /**
  * Run a saga and return a cancel function
  */
-export const runSaga = <S extends Record<string, unknown>>(
-  store: IStore<S>,
-  saga: ThunkAction<void, S>
-): (() => void) => {
-  const _thunkStore = createThunkStore(store)
+// export const runSaga = <S extends Record<string, unknown>>(
+//   store: IStore<S>,
+//   saga: ThunkAction<void, S>
+// ): (() => void) => {
+//   const _thunkStore = createThunkStore(store)
 
-  // Start the saga
-  const _promise = _thunkStore.dispatch(saga as ThunkAction<unknown, S>)
+//   // Start the saga
+//   const _promise = _thunkStore.dispatch(saga as ThunkAction<unknown, S>)
 
-  // Return cancel function
-  return () => {
-    // Note: For true cancellation, we'd need to implement cancellation tokens
-    // This is a simplified version
-    console.debug('[gstate] Saga cancel requested')
-  }
-}
+//   // Return cancel function
+//   return () => {
+//     // Note: For true cancellation, we'd need to implement cancellation tokens
+//     // This is a simplified version
+//     console.debug('[gstate] Saga cancel requested')
+//   }
+// }
 
 // ============================================================================
 // Export all
@@ -432,5 +432,5 @@ export default {
   all,
   race,
   createSaga,
-  runSaga
+  // runSaga
 }
